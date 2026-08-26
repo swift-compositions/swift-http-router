@@ -6,7 +6,7 @@ public import Serializer_Primitive
 extension HTTP.Route {
 
     /// Matches, and consumes, the request method.
-    public struct Method: Sendable {
+    public struct Method {
 
         public let method: HTTP.Method
 

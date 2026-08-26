@@ -7,6 +7,13 @@ public import Serializer_Primitive
 extension HTTP.Route.Header {
 
     /// Binds one named header field through a bidirectional conversion.
+    ///
+    /// A field that is absent or inadmissible to the conversion is `noMatch`,
+    /// not `malformed`: a header field is a routing discriminator, so a sibling
+    /// branch must still get its turn.
+    ///
+    /// A repeated name is normalized: parsing binds the first value and
+    /// consumes every occurrence, and printing emits one field.
     public struct Field<Conversion: Parser.Conversion.`Protocol`>
     where Conversion.Input == String {
 
@@ -39,7 +46,7 @@ extension HTTP.Route.Header.Field: Coder.`Protocol` {
         do {
             output = try conversion.apply(value.rawValue)
         } catch {
-            throw .malformed
+            throw .noMatch
         }
         input.headers.removeAll(named: name)
         return output

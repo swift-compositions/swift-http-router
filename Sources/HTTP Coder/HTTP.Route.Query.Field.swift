@@ -7,6 +7,10 @@ public import Serializer_Primitive
 extension HTTP.Route.Query {
 
     /// Binds one named query field through a bidirectional conversion.
+    ///
+    /// A field that is absent, valueless, or inadmissible to the conversion is
+    /// `noMatch`, not `malformed`: a query field is a routing discriminator, so
+    /// a sibling branch must still get its turn.
     public struct Field<Conversion: Parser.Conversion.`Protocol`>
     where Conversion.Input == String {
 
@@ -37,13 +41,13 @@ extension HTTP.Route.Query.Field: Coder.`Protocol` {
             throw .noMatch
         }
         guard let value = input.query[index].value else {
-            throw .malformed
+            throw .noMatch
         }
         let output: Conversion.Output
         do {
             output = try conversion.apply(value)
         } catch {
-            throw .malformed
+            throw .noMatch
         }
         input.query.remove(at: index)
         return output

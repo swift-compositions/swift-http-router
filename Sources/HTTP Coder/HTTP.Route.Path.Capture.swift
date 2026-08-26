@@ -7,6 +7,10 @@ public import Serializer_Primitive
 extension HTTP.Route.Path {
 
     /// Binds one path segment through a bidirectional conversion.
+    ///
+    /// A segment the conversion cannot admit is `noMatch`, not `malformed`: a
+    /// captured segment is a routing discriminator, so a sibling branch must
+    /// still get its turn.
     public struct Capture<Conversion: Parser.Conversion.`Protocol`>
     where Conversion.Input == String {
 
@@ -36,7 +40,7 @@ extension HTTP.Route.Path.Capture: Coder.`Protocol` {
         do {
             output = try conversion.apply(segment)
         } catch {
-            throw .malformed
+            throw .noMatch
         }
         input.path.removeFirst()
         return output

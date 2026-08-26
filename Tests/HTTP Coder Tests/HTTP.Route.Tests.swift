@@ -114,7 +114,7 @@ func pathCaptureBindsASegmentAndRoundTrips() throws {
 }
 
 @Test
-func pathCaptureDistinguishesAbsenceFromMalformedness() {
+func pathCaptureRefusesAnInadmissibleSegmentWithoutHaltingTheAlternation() {
     let coder = HTTP.Route.Path.Capture(DecimalConversion())
 
     var empty = HTTP.Route.Input(path: [])
@@ -122,11 +122,27 @@ func pathCaptureDistinguishesAbsenceFromMalformedness() {
         _ = try coder.parse(&empty)
     }
 
-    var malformed = HTTP.Route.Input(path: ["twelve"])
-    #expect(throws: HTTP.Route.Error.malformed) {
-        _ = try coder.parse(&malformed)
+    // A head component is a routing discriminator: an inadmissible segment is
+    // noMatch, so `OneOf` still reaches the sibling branch.
+    var inadmissible = HTTP.Route.Input(path: ["new"])
+    #expect(throws: HTTP.Route.Error.noMatch) {
+        _ = try coder.parse(&inadmissible)
     }
-    #expect(malformed.path == ["twelve"])
+    #expect(inadmissible.path == ["new"])
+}
+
+@Test
+func aFailedCaptureLeavesTheInputForASiblingLiteralBranch() throws {
+    let capture = HTTP.Route.Path.Capture(DecimalConversion())
+    let literal = HTTP.Route.Path.Literal("new")
+    var input = HTTP.Route.Input(path: ["new"])
+
+    #expect(throws: HTTP.Route.Error.noMatch) {
+        _ = try capture.parse(&input)
+    }
+
+    try literal.parse(&input)
+    #expect(input.path.isEmpty)
 }
 
 @Test
@@ -141,6 +157,16 @@ func queryFieldBindsByNameAndRoundTrips() throws {
 
     #expect(throws: HTTP.Route.Error.noMatch) {
         _ = try coder.parse(&input)
+    }
+
+    var valueless = HTTP.Route.Input(query: [.init(name: "limit", value: nil)])
+    #expect(throws: HTTP.Route.Error.noMatch) {
+        _ = try coder.parse(&valueless)
+    }
+
+    var inadmissible = HTTP.Route.Input(query: [.init(name: "limit", value: "nine")])
+    #expect(throws: HTTP.Route.Error.noMatch) {
+        _ = try coder.parse(&inadmissible)
     }
 
     var buffer = HTTP.Route.Input()

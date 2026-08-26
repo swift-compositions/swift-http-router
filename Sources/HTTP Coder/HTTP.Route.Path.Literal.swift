@@ -6,7 +6,7 @@ public import Serializer_Primitive
 extension HTTP.Route.Path {
 
     /// Matches, and consumes, one literal path segment.
-    public struct Literal: Sendable, ExpressibleByStringLiteral {
+    public struct Literal: ExpressibleByStringLiteral {
 
         public let segment: String
 

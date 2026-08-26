@@ -23,7 +23,7 @@ private func decimal() -> HTTP.Coding.Body.Text<Int> {
 }
 
 @Test
-func responseBranchRoundTripsItsStatusAndPayloadCanonically() throws {
+func `a response branch round trips its status and payload canonically`() throws {
     let coder = HTTP.Response.Coder.Branch(status: .ok, content: text())
 
     var response: HTTP.Response?
@@ -41,7 +41,7 @@ func responseBranchRoundTripsItsStatusAndPayloadCanonically() throws {
 }
 
 @Test
-func responseBranchRefusesAnotherStatusWithoutHaltingTheAlternation() throws {
+func `a response branch refuses another status without halting the alternation`() throws {
     let refusal = HTTP.Response.Coder.Branch(status: .badRequest, content: text())
     let success = HTTP.Response.Coder.Branch(status: .ok, content: decimal())
 
@@ -59,7 +59,7 @@ func responseBranchRefusesAnotherStatusWithoutHaltingTheAlternation() throws {
 }
 
 @Test
-func responseBranchTreatsAMatchingStatusWithABadPayloadAsMalformed() {
+func `a response branch treats a matching status with a bad payload as malformed`() {
     let coder = HTTP.Response.Coder.Branch(status: .ok, content: decimal())
 
     var inadmissible = Optional(
@@ -76,7 +76,7 @@ func responseBranchTreatsAMatchingStatusWithABadPayloadAsMalformed() {
 }
 
 @Test
-func responseBranchRejectsAResidualPayloadWithoutConsumingItsInput() {
+func `a response branch rejects a residual payload without consuming its input`() {
     let coder = HTTP.Response.Coder.Branch(status: .ok, content: UnconsumingBody())
 
     var response = Optional(HTTP.Response(status: .ok, body: [Byte(UInt8(1))]))

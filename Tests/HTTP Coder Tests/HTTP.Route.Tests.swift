@@ -38,7 +38,7 @@ private struct TextConversion: Parser.Conversion.`Protocol` {
 }
 
 @Test
-func routeInputSplitsBeforeDecodingSoAnEncodedSolidusIsNeverASeparator() throws {
+func `route input splits before decoding, so an encoded solidus is never a separator`() throws {
     let request = HTTP.Request(
         method: .get,
         target: .origin(path: try RFC_3986.URI.Path("/a%2Fb/c"), query: nil)
@@ -50,7 +50,7 @@ func routeInputSplitsBeforeDecodingSoAnEncodedSolidusIsNeverASeparator() throws 
 }
 
 @Test
-func routeInputRoundTripsARequestThroughDecodedComponents() throws {
+func `route input round trips a request through decoded components`() throws {
     let request = HTTP.Request(
         method: .post,
         target: .origin(
@@ -67,7 +67,7 @@ func routeInputRoundTripsARequestThroughDecodedComponents() throws {
 }
 
 @Test
-func methodLeafMatchesConsumesAndPrints() throws {
+func `the method leaf matches, consumes, and prints`() throws {
     let coder = HTTP.Route.Method(.post)
     var input = HTTP.Route.Input(method: .post)
 
@@ -84,7 +84,7 @@ func methodLeafMatchesConsumesAndPrints() throws {
 }
 
 @Test
-func pathLiteralMatchesOneSegmentAndRefusesAnother() throws {
+func `a path literal matches one segment and refuses another`() throws {
     let coder = HTTP.Route.Path.Literal("counter")
     var input = HTTP.Route.Input(path: ["counter", "rest"])
 
@@ -101,7 +101,7 @@ func pathLiteralMatchesOneSegmentAndRefusesAnother() throws {
 }
 
 @Test
-func pathCaptureBindsASegmentAndRoundTrips() throws {
+func `a path capture binds a segment and round trips`() throws {
     let coder = HTTP.Route.Path.Capture(DecimalConversion())
     var input = HTTP.Route.Input(path: ["42", "rest"])
 
@@ -114,7 +114,7 @@ func pathCaptureBindsASegmentAndRoundTrips() throws {
 }
 
 @Test
-func pathCaptureRefusesAnInadmissibleSegmentWithoutHaltingTheAlternation() {
+func `a path capture refuses an inadmissible segment without halting the alternation`() {
     let coder = HTTP.Route.Path.Capture(DecimalConversion())
 
     var empty = HTTP.Route.Input(path: [])
@@ -132,7 +132,7 @@ func pathCaptureRefusesAnInadmissibleSegmentWithoutHaltingTheAlternation() {
 }
 
 @Test
-func aFailedCaptureLeavesTheInputForASiblingLiteralBranch() throws {
+func `a failed capture leaves the input for a sibling literal branch`() throws {
     let capture = HTTP.Route.Path.Capture(DecimalConversion())
     let literal = HTTP.Route.Path.Literal("new")
     var input = HTTP.Route.Input(path: ["new"])
@@ -146,7 +146,7 @@ func aFailedCaptureLeavesTheInputForASiblingLiteralBranch() throws {
 }
 
 @Test
-func queryFieldBindsByNameAndRoundTrips() throws {
+func `a query field binds by name and round trips`() throws {
     let coder = HTTP.Route.Query.Field("limit", DecimalConversion())
     var input = HTTP.Route.Input(
         query: [.init(name: "other", value: "x"), .init(name: "limit", value: "9")]
@@ -175,7 +175,7 @@ func queryFieldBindsByNameAndRoundTrips() throws {
 }
 
 @Test
-func headerFieldBindsByNameAndRoundTrips() throws {
+func `a header field binds by name and round trips`() throws {
     let coder = HTTP.Route.Header.Field(.userAgent, TextConversion())
     var input = HTTP.Route.Input(
         headers: [.init(name: .userAgent, value: .init(unchecked: "canary"))]
@@ -194,7 +194,7 @@ func headerFieldBindsByNameAndRoundTrips() throws {
 }
 
 @Test
-func bodyLeafLiftsAValueCoderAndRejectsAResidualPayload() throws {
+func `the body leaf lifts a value coder and rejects a residual payload`() throws {
     let content = HTTP.Coding.Body.Text<String>(decode: { $0 }, encode: { $0 })
     let coder = HTTP.Route.Body(content)
 

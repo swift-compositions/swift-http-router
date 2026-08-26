@@ -88,6 +88,7 @@ let package = Package(
                 ),
                 .product(name: "Parser OneOf Primitives", package: "swift-parser-primitives"),
                 .product(name: "Parser Skip Primitives", package: "swift-parser-primitives"),
+                .product(name: "Parser Take Primitives", package: "swift-parser-primitives"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(
                     name: "Serializer Primitive",

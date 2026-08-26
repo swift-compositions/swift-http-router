@@ -9,7 +9,7 @@ import Serializer_Primitive
 import Testing
 
 @Test
-func malformedUTF8IsRejected() {
+func `malformed UTF-8 is rejected`() {
     let coder = HTTP.Coding.Body.Text<String>(
         decode: { $0 },
         encode: { $0 }
@@ -23,7 +23,7 @@ func malformedUTF8IsRejected() {
 }
 
 @Test
-func structuralCodersRejectUnconsumedBodiesWithoutConsumingTheirInput() {
+func `structural coders reject unconsumed bodies without consuming their input`() {
     let requestCoder = HTTP.Coding.Request(
         method: .post,
         target: .origin(path: ["value"], query: nil),
@@ -68,7 +68,7 @@ func structuralCodersRejectUnconsumedBodiesWithoutConsumingTheirInput() {
 }
 
 @Test
-func declarativeRequestCoderRoundTrips() throws {
+func `a declarative request coder round trips`() throws {
     let content = HTTP.Coding.Body.Text<String>(
         decode: { $0 },
         encode: { $0 }
@@ -92,7 +92,7 @@ func declarativeRequestCoderRoundTrips() throws {
 }
 
 @Test
-func declarativeSuccessResponseRoundTripsTheNeverRow() throws {
+func `a declarative success response round trips the Never row`() throws {
     let content = HTTP.Coding.Body.Text<Int>(
         decode: { text throws(HTTP.Coding.Body.Error) in
             guard let value = Int(text) else {
@@ -117,7 +117,7 @@ func declarativeSuccessResponseRoundTripsTheNeverRow() throws {
 }
 
 @Test
-func declarativeResponseChoiceRoundTripsBothBranches() throws {
+func `a declarative response choice round trips both branches`() throws {
     let refusal = HTTP.Coding.Body.Text<String>(
         decode: { $0 },
         encode: { $0 }

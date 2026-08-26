@@ -9,7 +9,7 @@ extension HTTP.Route {
     /// Components are split by `RFC_3986` before percent-decoding, so a
     /// `%2F` inside a segment is never a separator. Every stored component is
     /// percent-decoded; a leaf that consumes one removes it.
-    public struct Input: Equatable, Sendable {
+    public struct Input: Equatable {
 
         /// Present until a method leaf consumes it.
         public var method: HTTP.Method?

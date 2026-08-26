@@ -3,7 +3,7 @@ public import HTTP
 extension HTTP.Route.Input {
 
     /// One ordered query pair, percent-decoded.
-    public struct Parameter: Equatable, Sendable {
+    public struct Parameter: Equatable {
 
         public var name: String
 

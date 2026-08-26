@@ -26,13 +26,56 @@ let package = Package(
             url: "https://github.com/swift-primitives/swift-coder-primitives.git",
             branch: "main"
         ),
+        .package(
+            url: "https://github.com/swift-primitives/swift-byte-primitives.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-primitives/swift-either-primitives.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-primitives/swift-parser-primitives.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-primitives/swift-serializer-primitives.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-ietf/swift-rfc-3986.git",
+            branch: "main"
+        ),
     ],
     targets: [
         .target(
             name: "HTTP Coder",
             dependencies: [
                 .product(name: "HTTP", package: "swift-http"),
+                .product(name: "Byte Primitive", package: "swift-byte-primitives"),
                 .product(name: "Coder Primitive", package: "swift-coder-primitives"),
+                .product(name: "Either Primitives", package: "swift-either-primitives"),
+                .product(name: "Parser Primitive", package: "swift-parser-primitives"),
+                .product(
+                    name: "Serializer Primitive",
+                    package: "swift-serializer-primitives"
+                ),
+            ]
+        ),
+        .testTarget(
+            name: "HTTP Coder Tests",
+            dependencies: [
+                "HTTP Coder",
+                .product(name: "Byte Primitive", package: "swift-byte-primitives"),
+                .product(name: "Coder Primitive", package: "swift-coder-primitives"),
+                .product(name: "Either Primitives", package: "swift-either-primitives"),
+                .product(name: "HTTP", package: "swift-http"),
+                .product(name: "Parser Primitive", package: "swift-parser-primitives"),
+                .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(
+                    name: "Serializer Primitive",
+                    package: "swift-serializer-primitives"
+                ),
             ]
         ),
     ],

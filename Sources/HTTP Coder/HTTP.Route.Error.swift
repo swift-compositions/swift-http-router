@@ -2,7 +2,7 @@ public import HTTP
 
 extension HTTP.Route {
 
-    public enum Error: Swift.Error, Equatable, Sendable {
+    public enum Error: Swift.Error, Equatable {
 
         /// The request does not address this branch. `OneOf` continues past this
         /// failure and only this failure.

@@ -2,7 +2,7 @@ public import HTTP
 
 extension HTTP.Response.Coder {
 
-    public enum Error: Swift.Error, Equatable, Sendable {
+    public enum Error: Swift.Error, Equatable {
 
         /// The response does not address this branch. An alternation continues
         /// past this failure and only this failure.

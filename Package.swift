@@ -57,6 +57,11 @@ let package = Package(
                 .product(name: "Either Primitives", package: "swift-either-primitives"),
                 .product(name: "Parser Primitive", package: "swift-parser-primitives"),
                 .product(
+                    name: "Parser Conversion Primitives",
+                    package: "swift-parser-primitives"
+                ),
+                .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(
                     name: "Serializer Primitive",
                     package: "swift-serializer-primitives"
                 ),
@@ -71,6 +76,10 @@ let package = Package(
                 .product(name: "Either Primitives", package: "swift-either-primitives"),
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "Parser Primitive", package: "swift-parser-primitives"),
+                .product(
+                    name: "Parser Conversion Primitives",
+                    package: "swift-parser-primitives"
+                ),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(
                     name: "Serializer Primitive",

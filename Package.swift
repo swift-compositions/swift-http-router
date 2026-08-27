@@ -31,27 +31,11 @@ let package = Package(
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-primitives/swift-either-primitives.git",
-            branch: "main"
-        ),
-        .package(
-            url: "https://github.com/swift-primitives/swift-input-primitives.git",
-            branch: "main"
-        ),
-        .package(
-            url: "https://github.com/swift-primitives/swift-optic-primitives.git",
-            branch: "main"
-        ),
-        .package(
             url: "https://github.com/swift-primitives/swift-parser-primitives.git",
             branch: "main"
         ),
         .package(
             url: "https://github.com/swift-primitives/swift-serializer-primitives.git",
-            branch: "main"
-        ),
-        .package(
-            url: "https://github.com/swift-ietf/swift-rfc-3986.git",
             branch: "main"
         ),
     ],
@@ -61,18 +45,8 @@ let package = Package(
             dependencies: [
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "Byte Primitive", package: "swift-byte-primitives"),
-                .product(name: "Coder Parser Primitives", package: "swift-coder-primitives"),
                 .product(name: "Coder Primitive", package: "swift-coder-primitives"),
-                .product(name: "Either Primitives", package: "swift-either-primitives"),
-                .product(name: "Optic Primitives", package: "swift-optic-primitives"),
                 .product(name: "Parser Primitive", package: "swift-parser-primitives"),
-                .product(
-                    name: "Parser Conversion Primitives",
-                    package: "swift-parser-primitives"
-                ),
-                .product(name: "Parser Error Primitives", package: "swift-parser-primitives"),
-                .product(name: "Parser Take Primitives", package: "swift-parser-primitives"),
-                .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(
                     name: "Serializer Primitive",
                     package: "swift-serializer-primitives"
@@ -84,25 +58,8 @@ let package = Package(
             dependencies: [
                 "HTTP Coder",
                 .product(name: "Byte Primitive", package: "swift-byte-primitives"),
-                .product(name: "Coder Parser Primitives", package: "swift-coder-primitives"),
                 .product(name: "Coder Primitive", package: "swift-coder-primitives"),
-                .product(name: "Either Primitives", package: "swift-either-primitives"),
                 .product(name: "HTTP", package: "swift-http"),
-                .product(name: "Input Buffer Primitives", package: "swift-input-primitives"),
-                .product(name: "Optic Primitives", package: "swift-optic-primitives"),
-                .product(name: "Parser Primitive", package: "swift-parser-primitives"),
-                .product(
-                    name: "Parser Conversion Primitives",
-                    package: "swift-parser-primitives"
-                ),
-                .product(name: "Parser OneOf Primitives", package: "swift-parser-primitives"),
-                .product(name: "Parser Skip Primitives", package: "swift-parser-primitives"),
-                .product(name: "Parser Take Primitives", package: "swift-parser-primitives"),
-                .product(name: "RFC 3986", package: "swift-rfc-3986"),
-                .product(
-                    name: "Serializer Primitive",
-                    package: "swift-serializer-primitives"
-                ),
             ]
         ),
     ],

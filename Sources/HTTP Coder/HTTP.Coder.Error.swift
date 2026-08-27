@@ -1,6 +1,6 @@
 public import HTTP
 
-extension HTTP.Message {
+extension HTTP.Coder {
     public enum Error: Swift.Error, Equatable {
         case mismatch
         case malformed

@@ -1,43 +1,39 @@
-public import Byte_Primitive
-public import Coder_Primitive
+public import Byte
+public import Byte_Parser
+public import Coder
 public import HTTP
-import Parser_Primitive
+import Parser
 public import RFC_9110
-import Serializer_Primitive
+import Serializer
 
 extension HTTP.Message.Content {
-    public struct Text {
+
+    public struct Text: Coding {
+
+        public typealias Input = Byte.Input
+
+        public typealias Output = Swift.String
+
+        public typealias Buffer = [Byte]
+
+        public typealias Failure = HTTP.Message.Content.Error
+
         public init() {}
-    }
-}
 
-extension HTTP.Message.Content.Text: Coder_Primitive.Coder.`Protocol` {
-    public typealias Input = [Byte]?
-    public typealias Output = String
-    public typealias Buffer = [Byte]?
-    public typealias Failure = HTTP.Message.Content.Error
-    public typealias Body = Never
-
-    public borrowing func parse(
-        _ input: inout [Byte]?
-    ) throws(HTTP.Message.Content.Error) -> String {
-        guard let bytes = input else {
-            throw .missing
+        public borrowing func parse(_ input: inout Byte.Input) throws(Failure) -> Swift.String {
+            var raw: [UInt8] = []
+            raw.reserveCapacity(input.count)
+            while let byte = input.next() {
+                raw.append(byte.bitPattern)
+            }
+            guard let text = Swift.String(validating: raw, as: Swift.UTF8.self) else {
+                throw .invalid
+            }
+            return text
         }
-        guard let text = String(
-            validating: bytes.lazy.map(\.underlying),
-            as: UTF8.self
-        ) else {
-            throw .invalid
-        }
-        input = nil
-        return text
-    }
 
-    public borrowing func serialize(
-        _ output: String,
-        into buffer: inout [Byte]?
-    ) {
-        buffer = output.utf8.map(Byte.init)
+        public borrowing func serialize(_ output: Swift.String, into buffer: inout [Byte]) throws(Failure) {
+            buffer.append(contentsOf: output.utf8.lazy.map(Byte.init(bitPattern:)))
+        }
     }
 }

@@ -19,11 +19,15 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/swift-foundations/swift-call.git",
+            url: "https://github.com/swift-compositions/swift-call.git",
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-foundations/swift-http.git",
+            url: "https://github.com/swift-compositions/swift-client.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-compositions/swift-http.git",
             branch: "main"
         ),
         .package(
@@ -31,19 +35,39 @@ let package = Package(
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-primitives/swift-coder-primitives.git",
+            url: "https://github.com/swift-ietf/swift-rfc-3986.git",
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-primitives/swift-parser-primitives.git",
+            url: "https://github.com/swift-atoms/swift-byte.git",
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-primitives/swift-serializer-primitives.git",
+            url: "https://github.com/swift-atoms/swift-coder.git",
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-primitives/swift-byte-primitives.git",
+            url: "https://github.com/swift-atoms/swift-either.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-atoms/swift-optic.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-atoms/swift-parser.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-atoms/swift-serializer.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-molecules/swift-byte-parser.git",
+            branch: "main"
+        ),
+        .package(
+            url: "https://github.com/swift-molecules/swift-optic-coder.git",
             branch: "main"
         ),
     ],
@@ -52,21 +76,38 @@ let package = Package(
             name: "HTTP Coder",
             dependencies: [
                 .product(name: "Call", package: "swift-call"),
+                .product(name: "Client", package: "swift-client"),
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
-                .product(name: "Byte Primitive", package: "swift-byte-primitives"),
-                .product(name: "Coder Primitive", package: "swift-coder-primitives"),
-                .product(name: "Parser Primitive", package: "swift-parser-primitives"),
-                .product(name: "Serializer Primitive", package: "swift-serializer-primitives"),
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Byte Parser", package: "swift-byte-parser"),
+                .product(name: "Coder", package: "swift-coder"),
+                .product(name: "Either", package: "swift-either"),
+                .product(name: "Optic", package: "swift-optic"),
+                .product(name: "Optic Coder", package: "swift-optic-coder"),
+                .product(name: "Parser", package: "swift-parser"),
+                .product(name: "Parser Skip", package: "swift-parser"),
+                .product(name: "Serializer", package: "swift-serializer"),
             ]
         ),
         .testTarget(
             name: "HTTP Coder Tests",
             dependencies: [
                 "HTTP Coder",
-                .product(name: "Byte Primitive", package: "swift-byte-primitives"),
-                .product(name: "Coder Primitive", package: "swift-coder-primitives"),
+                .product(name: "Call", package: "swift-call"),
+                .product(name: "Client", package: "swift-client"),
                 .product(name: "HTTP", package: "swift-http"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+                .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Byte Parser", package: "swift-byte-parser"),
+                .product(name: "Coder", package: "swift-coder"),
+                .product(name: "Either", package: "swift-either"),
+                .product(name: "Optic", package: "swift-optic"),
+                .product(name: "Optic Coder", package: "swift-optic-coder"),
+                .product(name: "Parser", package: "swift-parser"),
+                .product(name: "Parser Skip", package: "swift-parser"),
+                .product(name: "Serializer", package: "swift-serializer"),
             ]
         ),
     ],

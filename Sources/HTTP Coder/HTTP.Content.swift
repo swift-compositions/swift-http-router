@@ -6,7 +6,7 @@ public import Parser
 public import RFC_9110
 public import Serializer
 
-extension HTTP.Route {
+extension HTTP {
 
     public struct Content<Message: HTTP.Message.`Protocol`, Value: Coding>: Coding
     where

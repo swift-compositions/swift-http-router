@@ -90,14 +90,14 @@ extension Fixture: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.echo) {
-            HTTP.Route.Method(.post)
-            HTTP.Route.Target(.resource(.init(unchecked: "/echo")))
-            HTTP.Route.Content(HTTP.Message.Content.Text())
+            HTTP.Method.post
+            HTTP.Target.resource(.init(unchecked: "/echo"))
+            HTTP.Content(HTTP.Message.Content.Text())
         }
         HTTP.Route.Case(\.shout) {
-            HTTP.Route.Method(.post)
-            HTTP.Route.Target(.resource(.init(unchecked: "/shout")))
-            HTTP.Route.Content(HTTP.Message.Content.Text())
+            HTTP.Method.post
+            HTTP.Target.resource(.init(unchecked: "/shout"))
+            HTTP.Content(HTTP.Message.Content.Text())
         }
     }
 }
@@ -181,9 +181,9 @@ extension Single: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.respond) {
-            HTTP.Route.Method(.post)
-            HTTP.Route.Target(.resource(.init(unchecked: "/respond")))
-            HTTP.Route.Content(Digit())
+            HTTP.Method.post
+            HTTP.Target.resource(.init(unchecked: "/respond"))
+            HTTP.Content(Digit())
         }
     }
 }
@@ -192,12 +192,13 @@ extension Single: HTTP.Respondable {
 
     static var response: some HTTP.Replying<Swift.Result<String, Fixture.Refusal>> {
         Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.success, absent: .mismatch) {
-            HTTP.Route.Status(.ok)
-            HTTP.Route.Content(HTTP.Message.Content.Text())
+            HTTP.Status.ok {
+                HTTP.Content(HTTP.Message.Content.Text())
+            }
         }
         Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.failure, absent: .mismatch) {
-            HTTP.Route.Status(.badRequest)
-            HTTP.Route.Content(
+            HTTP.Status.badRequest
+            HTTP.Content(
                 HTTP.Message.Content.Text().map(
                     to: { _ in Fixture.Refusal.refused },
                     from: { _ in "refused" }
@@ -266,14 +267,14 @@ extension Committed: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.digit) {
-            HTTP.Route.Method(.post)
-            HTTP.Route.Target(.resource(.init(unchecked: "/same")))
-            HTTP.Route.Content(Digit())
+            HTTP.Method.post
+            HTTP.Target.resource(.init(unchecked: "/same"))
+            HTTP.Content(Digit())
         }
         HTTP.Route.Case(\.text) {
-            HTTP.Route.Method(.post)
-            HTTP.Route.Target(.resource(.init(unchecked: "/same")))
-            HTTP.Route.Content(HTTP.Message.Content.Text())
+            HTTP.Method.post
+            HTTP.Target.resource(.init(unchecked: "/same"))
+            HTTP.Content(HTTP.Message.Content.Text())
         }
     }
 }
@@ -290,22 +291,22 @@ extension Sixteen {
 
     @HTTP.Route.Builder<Sixteen>
     static var rows: some HTTP.Replying<Sixteen> {
-        Coder.Case(row(.c1), absent: .mismatch) { HTTP.Route.Status(201) }
-        Coder.Case(row(.c2), absent: .mismatch) { HTTP.Route.Status(202) }
-        Coder.Case(row(.c3), absent: .mismatch) { HTTP.Route.Status(203) }
-        Coder.Case(row(.c4), absent: .mismatch) { HTTP.Route.Status(204) }
-        Coder.Case(row(.c5), absent: .mismatch) { HTTP.Route.Status(205) }
-        Coder.Case(row(.c6), absent: .mismatch) { HTTP.Route.Status(206) }
-        Coder.Case(row(.c7), absent: .mismatch) { HTTP.Route.Status(207) }
-        Coder.Case(row(.c8), absent: .mismatch) { HTTP.Route.Status(208) }
-        Coder.Case(row(.c9), absent: .mismatch) { HTTP.Route.Status(209) }
-        Coder.Case(row(.c10), absent: .mismatch) { HTTP.Route.Status(210) }
-        Coder.Case(row(.c11), absent: .mismatch) { HTTP.Route.Status(211) }
-        Coder.Case(row(.c12), absent: .mismatch) { HTTP.Route.Status(212) }
-        Coder.Case(row(.c13), absent: .mismatch) { HTTP.Route.Status(213) }
-        Coder.Case(row(.c14), absent: .mismatch) { HTTP.Route.Status(214) }
-        Coder.Case(row(.c15), absent: .mismatch) { HTTP.Route.Status(215) }
-        Coder.Case(row(.c16), absent: .mismatch) { HTTP.Route.Status(216) }
+        Coder.Case(row(.c1), absent: .mismatch) { HTTP.Status(201) }
+        Coder.Case(row(.c2), absent: .mismatch) { HTTP.Status(202) }
+        Coder.Case(row(.c3), absent: .mismatch) { HTTP.Status(203) }
+        Coder.Case(row(.c4), absent: .mismatch) { HTTP.Status(204) }
+        Coder.Case(row(.c5), absent: .mismatch) { HTTP.Status(205) }
+        Coder.Case(row(.c6), absent: .mismatch) { HTTP.Status(206) }
+        Coder.Case(row(.c7), absent: .mismatch) { HTTP.Status(207) }
+        Coder.Case(row(.c8), absent: .mismatch) { HTTP.Status(208) }
+        Coder.Case(row(.c9), absent: .mismatch) { HTTP.Status(209) }
+        Coder.Case(row(.c10), absent: .mismatch) { HTTP.Status(210) }
+        Coder.Case(row(.c11), absent: .mismatch) { HTTP.Status(211) }
+        Coder.Case(row(.c12), absent: .mismatch) { HTTP.Status(212) }
+        Coder.Case(row(.c13), absent: .mismatch) { HTTP.Status(213) }
+        Coder.Case(row(.c14), absent: .mismatch) { HTTP.Status(214) }
+        Coder.Case(row(.c15), absent: .mismatch) { HTTP.Status(215) }
+        Coder.Case(row(.c16), absent: .mismatch) { HTTP.Status(216) }
     }
 }
 
@@ -319,28 +320,28 @@ struct `HTTP.Route Tests` {
     @Test
     func `field coders mismatch on parse and set their field on serialize`() throws {
         var request = HTTP.Route.Request.blank
-        try HTTP.Route.Method(.post).serialize((), into: &request)
-        try HTTP.Route.Target(.resource(.init(unchecked: "/echo"))).serialize((), into: &request)
+        try HTTP.Method.post.serialize((), into: &request)
+        try HTTP.Target.resource(.init(unchecked: "/echo")).serialize((), into: &request)
         #expect(request.method == .post)
         #expect(request.target == .resource(.init(unchecked: "/echo")))
 
         var input = request
-        try HTTP.Route.Method(.post).parse(&input)
+        try HTTP.Method.post.parse(&input)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Method(.get).parse(&input)
+            try HTTP.Method.get.parse(&input)
         }
 
         var response = HTTP.Route.Response.blank
-        try HTTP.Route.Status(.badRequest).serialize((), into: &response)
+        try HTTP.Status.badRequest.serialize((), into: &response)
         #expect(response.status == .badRequest)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Status(.ok).parse(&response)
+            try HTTP.Status.ok.parse(&response)
         }
     }
 
     @Test
     func `the content bridge round trips and commits on trailing or missing bytes`() throws {
-        let content = HTTP.Route.Content<HTTP.Route.Request, Digit>(Digit())
+        let content = HTTP.Content<HTTP.Route.Request, Digit>(Digit())
         var request = HTTP.Route.Request.blank
         try content.serialize(7, into: &request)
         #expect(request.content == bytes("7"))

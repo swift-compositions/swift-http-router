@@ -1,5 +1,6 @@
 import Byte
-import Byte_Parser
+import Byte_Standard_Library_Integration
+import Cursor_Standard_Library_Integration
 import Call_Algebra
 import Coder
 import HTTP
@@ -555,12 +556,12 @@ private struct Unprintable: Coding {
         case refused
     }
 
-    typealias Input = Byte.Input
+    typealias Input = ArraySlice<Byte>
     typealias Output = String
     typealias Buffer = [Byte]
     typealias Failure = Error
 
-    func parse(_ input: inout Byte.Input) throws(Error) -> String {
+    func parse(_ input: inout ArraySlice<Byte>) throws(Error) -> String {
         throw .refused
     }
 

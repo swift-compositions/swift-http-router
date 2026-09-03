@@ -18,6 +18,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/swift-atoms/swift-cursor.git", branch: "main"),
         .package(
             url: "https://github.com/swift-compositions/swift-call.git",
             branch: "main"
@@ -63,10 +64,6 @@ let package = Package(
             branch: "main"
         ),
         .package(
-            url: "https://github.com/swift-molecules/swift-byte-parser.git",
-            branch: "main"
-        ),
-        .package(
             url: "https://github.com/swift-molecules/swift-optic-coder.git",
             branch: "main"
         ),
@@ -80,7 +77,9 @@ let package = Package(
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Byte", package: "swift-byte"),
-                .product(name: "Byte Parser", package: "swift-byte-parser"),
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Byte Standard Library Integration", package: "swift-byte"),
+                .product(name: "Cursor Standard Library Integration", package: "swift-cursor"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
                 .product(name: "Optic", package: "swift-optic"),
@@ -100,7 +99,9 @@ let package = Package(
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(name: "Byte", package: "swift-byte"),
-                .product(name: "Byte Parser", package: "swift-byte-parser"),
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Byte Standard Library Integration", package: "swift-byte"),
+                .product(name: "Cursor Standard Library Integration", package: "swift-cursor"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
                 .product(name: "Optic", package: "swift-optic"),

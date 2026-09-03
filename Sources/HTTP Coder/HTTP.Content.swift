@@ -1,5 +1,6 @@
 public import Byte
-public import Byte_Parser
+import Byte_Standard_Library_Integration
+import Cursor_Standard_Library_Integration
 public import Coder
 public import HTTP
 public import Parser
@@ -11,7 +12,7 @@ extension HTTP {
     public struct Content<Message: HTTP.Message.`Protocol`, Value: Coding>: Coding
     where
         Message.Content == [Byte],
-        Value.Input == Byte.Input,
+        Value.Input == ArraySlice<Byte>,
         Value.Buffer == [Byte]
     {
         public typealias Input = Message
@@ -32,7 +33,7 @@ extension HTTP {
             guard let bytes = input.content else {
                 throw .malformed
             }
-            var cursor = Byte.Input(bytes)
+            var cursor = bytes[...]
             let output: Output
             do throws(Value.Failure) {
                 output = try value.parse(&cursor)

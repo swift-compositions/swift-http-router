@@ -1,5 +1,6 @@
 import Byte
-import Byte_Parser
+import Byte_Standard_Library_Integration
+import Cursor_Standard_Library_Integration
 import Call_Algebra
 import Client
 import Coder
@@ -108,12 +109,12 @@ struct Digit: Coding {
         case notADigit
     }
 
-    typealias Input = Byte.Input
+    typealias Input = ArraySlice<Byte>
     typealias Output = Int
     typealias Buffer = [Byte]
     typealias Failure = Error
 
-    func parse(_ input: inout Byte.Input) throws(Error) -> Int {
+    func parse(_ input: inout ArraySlice<Byte>) throws(Error) -> Int {
         guard let byte = input.next(), (0x30...0x39).contains(byte.bitPattern) else {
             throw .notADigit
         }

@@ -241,6 +241,82 @@ extension Committed: HTTP.Routable {
     }
 }
 
+enum Linear {
+    enum Call: ~Copyable, Operation.Coproduct {
+        case fixture(Fixture.Call)
+        case single(Single.Call)
+
+        typealias Operations = Either<Fixture.Call, Single.Call>
+
+        struct Prisms {
+            var fixture: Optic<Linear.Call, Linear.Call, Fixture.Call, Fixture.Call>.Prism {
+                .init(
+                    match: { call in
+                        switch consume call {
+                        case let .fixture(value): return .right(value)
+                        case let .single(value): return .left(.single(value))
+                        }
+                    },
+                    embed: Linear.Call.fixture
+                )
+            }
+
+            var single: Optic<Linear.Call, Linear.Call, Single.Call, Single.Call>.Prism {
+                .init(
+                    match: { call in
+                        switch consume call {
+                        case let .fixture(value): return .left(.fixture(value))
+                        case let .single(value): return .right(value)
+                        }
+                    },
+                    embed: Linear.Call.single
+                )
+            }
+        }
+
+        struct Folds {
+            var fixture: Optic<Linear.Call, Linear.Call, Fixture.Call, Fixture.Call>.Fold {
+                .init { call, visit in
+                    switch call {
+                    case let .fixture(value):
+                        visit(value)
+                        return true
+                    case .single:
+                        return false
+                    }
+                }
+            }
+
+            var single: Optic<Linear.Call, Linear.Call, Single.Call, Single.Call>.Fold {
+                .init { call, visit in
+                    switch call {
+                    case .fixture:
+                        return false
+                    case let .single(value):
+                        visit(value)
+                        return true
+                    }
+                }
+            }
+        }
+
+        static var prisms: Prisms { .init() }
+        static var folds: Folds { .init() }
+    }
+}
+
+extension Linear: HTTP.Routable {
+
+    static var route: some HTTP.Routing<Call> {
+        HTTP.Route.Case(Call.prisms.fixture, Call.folds.fixture) {
+            Fixture.route
+        }
+        HTTP.Route.Case(Call.prisms.single, Call.folds.single) {
+            Single.route
+        }
+    }
+}
+
 enum Sixteen: Equatable, Sendable {
     case c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16
 }
@@ -282,22 +358,22 @@ struct `HTTP.Route Tests` {
     @Test
     func `field coders mismatch on parse and set their field on serialize`() throws {
         var request = HTTP.Route.Request.blank
-        try HTTP.Method.post.serialize((), into: &request)
-        try HTTP.Target.resource(.init(unchecked: "/echo")).serialize((), into: &request)
+        try HTTP.Route.Method(.post).serialize((), into: &request)
+        try HTTP.Route.Target(.resource(.init(unchecked: "/echo"))).serialize((), into: &request)
         #expect(request.method == .post)
         #expect(request.target == .resource(.init(unchecked: "/echo")))
 
         var input = request
-        try HTTP.Method.post.parse(&input)
+        try HTTP.Route.Method(.post).parse(&input)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Method.get.parse(&input)
+            try HTTP.Route.Method(.get).parse(&input)
         }
 
         var response = HTTP.Route.Response.blank
-        try HTTP.Status.badRequest.serialize((), into: &response)
+        try HTTP.Route.Status(.badRequest).serialize((), into: &response)
         #expect(response.status == .badRequest)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Status.ok.parse(&response)
+            try HTTP.Route.Status(.ok).parse(&response)
         }
     }
 
@@ -360,6 +436,39 @@ struct `HTTP.Route Tests` {
             try HTTP.request(Fixture.self, for: .shout(.init("x"))).target
                 == .resource(.init(unchecked: "/shout"))
         )
+    }
+
+    @Test
+    func `a noncopyable root routes its copyable children from a borrow`() throws {
+        let echo = Linear.Call.fixture(.echo(.init("Ada")))
+        let echoRequest = try HTTP.request(Linear.self, for: echo)
+        let echoRequestAgain = try HTTP.request(Linear.self, for: echo)
+        #expect(echoRequest.target == .resource(.init(unchecked: "/echo")))
+        #expect(echoRequest == echoRequestAgain)
+        let routedEcho = try HTTP.route(Linear.self, echoRequest)
+        let fixture = Linear.Call.prisms.fixture.match(routedEcho)
+        switch consume fixture {
+        case let .right(call): #expect(call == .echo(.init("Ada")))
+        case .left: Issue.record("expected the fixture branch")
+        }
+
+        let respond = Linear.Call.single(.respond(.init(4)))
+        let respondRequest = try HTTP.request(Linear.self, for: respond)
+        #expect(respondRequest.target == .resource(.init(unchecked: "/respond")))
+        #expect(respondRequest.content == bytes("4"))
+        let routedRespond = try HTTP.route(Linear.self, respondRequest)
+        let single = Linear.Call.prisms.single.match(routedRespond)
+        switch consume single {
+        case let .right(.respond(application)): #expect(application.input == 4)
+        case .left: Issue.record("expected the single branch")
+        }
+
+        var buffer = HTTP.Route.Request.blank
+        #expect(throws: HTTP.Route.Error.mismatch) {
+            try HTTP.Route.Case(Linear.Call.prisms.single, Linear.Call.folds.single) { Single.route }
+                .serialize(Linear.Call.fixture(.shout(.init("x"))), into: &buffer)
+        }
+        #expect(buffer == HTTP.Route.Request.blank)
     }
 
     @Test

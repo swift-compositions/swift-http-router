@@ -10,59 +10,81 @@ public import Serializer
 extension HTTP.Route {
 
     public struct Case<
-        Call,
-        Focus,
+        Call: ~Copyable,
+        Focus: ~Copyable,
         Content: Coding,
         Operations: ~Copyable & ~Escapable
     >: HTTP.Route.`Protocol`
     where
-        Content.Input == HTTP.Route.Request,
+        Content.Input: HTTP.Message.Requesting,
         Content.Output == Focus,
-        Content.Buffer == HTTP.Route.Request,
+        Content.Buffer == Content.Input,
         Content.Failure == HTTP.Route.Error
     {
-        public typealias Message = HTTP.Route.Request
+        public typealias Message = Content.Input
 
-        public typealias Input = HTTP.Route.Request
+        public typealias Input = Content.Input
 
         public typealias Output = Call
 
-        public typealias Buffer = HTTP.Route.Request
+        public typealias Buffer = Content.Input
 
         public typealias Failure = HTTP.Route.Error
 
-        public let underlying: Coder.Case<HTTP.Route.Request, Call, Focus, Content>
+        public let underlying: Coder.Case<Content.Input, Call, Focus, Content>
+
+        public init(
+            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
+            content: Content
+        ) where Operations == Focus {
+            self.underlying = .init(prism, fold, absent: .mismatch) { content }
+        }
+
+        public init(
+            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
+            @Parser.Builder<HTTP.Route.Request> content: () -> Content
+        ) where Operations == Focus, Content.Input == HTTP.Route.Request {
+            self.init(prism, fold, content: content())
+        }
 
         public init(
             _ prism: Optic<Call, Call, Focus, Focus>.Prism,
             @Parser.Builder<HTTP.Route.Request> content: () -> Content
-        ) where Operations == Focus {
-            self.underlying = .init(prism, absent: .mismatch, content: content)
+        ) where Operations == Focus, Content.Input == HTTP.Route.Request, Call: Copyable {
+            self.init(prism, .init(prism), content: content())
         }
 
         private init(
             operations _: Operations.Type,
             _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
             content: Content
         ) {
-            self.underlying = .init(prism, absent: .mismatch) { content }
+            self.underlying = .init(prism, fold, absent: .mismatch) { content }
         }
 
         public borrowing func parse(_ input: inout Input) throws(Failure) -> Call {
             try underlying.parse(&input)
         }
 
-        public borrowing func serialize(_ output: Call, into buffer: inout Buffer) throws(Failure) {
+        public borrowing func serialize(_ output: borrowing Call, into buffer: inout Buffer) throws(Failure) {
             try underlying.serialize(output, into: &buffer)
         }
     }
 }
 
 extension HTTP.Route.Case
-where Operations: ~Copyable & ~Escapable {
+where
+    Call: ~Copyable,
+    Focus: ~Copyable,
+    Operations: ~Copyable & ~Escapable
+{
 
     public init<Inner: Coding>(
         _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
+        _ fold: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Fold,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
@@ -78,10 +100,29 @@ where Operations: ~Copyable & ~Escapable {
         self.init(
             operations: Operations.self,
             prism,
+            fold,
             content: content().map(
                 to: { input in Operation.Application<Operations>(input) },
                 from: { application in application.input }
             )
         )
+    }
+
+    public init<Inner: Coding>(
+        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
+        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
+    )
+    where
+        Call: Copyable,
+        Operations: Operation.Symbol,
+        Focus == Operation.Application<Operations>,
+        Content == Coder.Map<Inner, Operation.Application<Operations>>,
+        Operations.Input: Copyable & Escapable,
+        Inner.Input == HTTP.Route.Request,
+        Inner.Output == Operations.Input,
+        Inner.Buffer == HTTP.Route.Request,
+        Inner.Failure == HTTP.Route.Error
+    {
+        self.init(prism, .init(prism), content: content)
     }
 }

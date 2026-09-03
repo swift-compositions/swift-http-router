@@ -1,6 +1,3 @@
-public import Byte
-import Byte_Standard_Library_Integration
-import Cursor_Standard_Library_Integration
 public import Coder
 public import HTTP
 public import Parser
@@ -11,9 +8,9 @@ extension HTTP {
 
     public struct Content<Message: HTTP.Message.`Protocol`, Value: Coding>: Coding
     where
-        Message.Content == [Byte],
-        Value.Input == ArraySlice<Byte>,
-        Value.Buffer == [Byte]
+        Message.Content: RangeReplaceableCollection,
+        Value.Input == Message.Content.SubSequence,
+        Value.Buffer == Message.Content
     {
         public typealias Input = Message
 
@@ -30,10 +27,10 @@ extension HTTP {
         }
 
         public borrowing func parse(_ input: inout Message) throws(Failure) -> Output {
-            guard let bytes = input.content else {
+            guard let content = input.content else {
                 throw .malformed
             }
-            var cursor = bytes[...]
+            var cursor = content[...]
             let output: Output
             do throws(Value.Failure) {
                 output = try value.parse(&cursor)
@@ -48,13 +45,13 @@ extension HTTP {
         }
 
         public borrowing func serialize(_ output: Output, into buffer: inout Message) throws(Failure) {
-            var bytes: [Byte] = []
+            var content = Message.Content()
             do throws(Value.Failure) {
-                try value.serialize(output, into: &bytes)
+                try value.serialize(output, into: &content)
             } catch {
                 throw .unprintable
             }
-            buffer.content = bytes
+            buffer.content = content
         }
     }
 }

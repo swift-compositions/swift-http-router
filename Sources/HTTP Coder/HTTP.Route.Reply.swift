@@ -20,7 +20,7 @@ extension HTTP.Route {
 
         public typealias Failure = HTTP.Route.Error
 
-        public let status: HTTP.Status
+        public let status: HTTP.Route.Status<HTTP.Route.Response>
 
         public let content: Content
 
@@ -28,7 +28,7 @@ extension HTTP.Route {
             _ status: HTTP.Status,
             @Parser.Builder<HTTP.Route.Response> content: () -> Content
         ) {
-            self.status = status
+            self.status = .init(status)
             self.content = content()
         }
 
@@ -41,5 +41,14 @@ extension HTTP.Route {
             try status.serialize((), into: &buffer)
             try content.serialize(output, into: &buffer)
         }
+    }
+}
+
+extension HTTP.Status {
+
+    public func callAsFunction<Content: Coding>(
+        @Parser.Builder<HTTP.Route.Response> content: () -> Content
+    ) -> HTTP.Route.Reply<Content> {
+        .init(self, content: content)
     }
 }

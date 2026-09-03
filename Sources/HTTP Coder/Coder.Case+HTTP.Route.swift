@@ -8,6 +8,8 @@ public import Serializer
 extension Coder.Case: HTTP.Route.`Protocol`
 where
     Input: HTTP.Message.`Protocol`,
+    Source: ~Copyable,
+    Focus: ~Copyable,
     Content.Buffer == Input,
     Content.Failure == HTTP.Route.Error
 {

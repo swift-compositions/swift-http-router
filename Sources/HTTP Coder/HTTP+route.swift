@@ -9,6 +9,7 @@ extension HTTP {
         _ request: HTTP.Route.Request
     ) throws(HTTP.Route.Error) -> Domain.Call
     where
+        Domain.Call: ~Copyable,
         Domain.Call.Operations: ~Copyable & ~Escapable
     {
         var input = request

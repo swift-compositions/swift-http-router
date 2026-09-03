@@ -6,9 +6,10 @@ extension HTTP {
 
     public static func request<Domain: HTTP.Routable>(
         _: Domain.Type,
-        for call: Domain.Call
+        for call: borrowing Domain.Call
     ) throws(HTTP.Route.Error) -> HTTP.Route.Request
     where
+        Domain.Call: ~Copyable,
         Domain.Call.Operations: ~Copyable & ~Escapable
     {
         var buffer = HTTP.Route.Request.blank

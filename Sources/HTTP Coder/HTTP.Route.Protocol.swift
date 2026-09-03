@@ -11,7 +11,8 @@ extension HTTP.Route {
     where
         Input == Message,
         Buffer == Message,
-        Failure == HTTP.Route.Error
+        Failure == HTTP.Route.Error,
+        Output: ~Copyable
     {
         associatedtype Message: HTTP.Message.`Protocol`
 
@@ -27,7 +28,7 @@ extension HTTP {
         Call.Operations
     >
     where
-        Call: Operation.Coproduct,
+        Call: Operation.Coproduct & ~Copyable,
         Call.Operations: ~Copyable & ~Escapable
 
     public typealias Replying<Output> = Coding<

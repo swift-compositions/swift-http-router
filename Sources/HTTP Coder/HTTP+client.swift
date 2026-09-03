@@ -18,6 +18,7 @@ extension HTTP {
         Either<Either<Failure, HTTP.Route.Error>, Index.Failure>
     >
     where
+        Domain.Call: ~Copyable,
         Domain.Call.Operations: ~Copyable & ~Escapable,
         Index.Input: Copyable & Escapable
     {

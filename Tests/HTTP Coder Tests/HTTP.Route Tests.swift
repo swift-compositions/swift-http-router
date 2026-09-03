@@ -91,12 +91,12 @@ extension Fixture: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.echo) {
-            HTTP.Method.post
+            .post
             HTTP.Target.resource(.init(unchecked: "/echo"))
             HTTP.Content(HTTP.Message.Content.Text())
         }
         HTTP.Route.Case(\.shout) {
-            HTTP.Method.post
+            .post
             HTTP.Target.resource(.init(unchecked: "/shout"))
             HTTP.Content(HTTP.Message.Content.Text())
         }
@@ -182,7 +182,7 @@ extension Single: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.respond) {
-            HTTP.Method.post
+            .post
             HTTP.Target.resource(.init(unchecked: "/respond"))
             HTTP.Content(Digit())
         }
@@ -198,7 +198,7 @@ extension Single: HTTP.Respondable {
             }
         }
         Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.failure, absent: .mismatch) {
-            HTTP.Status.badRequest
+            .badRequest
             HTTP.Content(
                 HTTP.Message.Content.Text().map(
                     to: { _ in Fixture.Refusal.refused },
@@ -268,12 +268,12 @@ extension Committed: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.digit) {
-            HTTP.Method.post
+            .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(Digit())
         }
         HTTP.Route.Case(\.text) {
-            HTTP.Method.post
+            .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(HTTP.Message.Content.Text())
         }

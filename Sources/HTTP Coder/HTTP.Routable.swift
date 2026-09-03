@@ -6,13 +6,12 @@ extension HTTP {
 
     public protocol Routable {
 
-        associatedtype Call: Operation.Coproduct & ~Copyable
+        associatedtype Call: Operation.Coproduct
 
         associatedtype Route: HTTP.Route.`Protocol`
         where
             Route.Message == HTTP.Route.Request,
             Route.Output == Call,
-            Route.Output: ~Copyable,
             Route.Operations == Call.Operations,
             Route.Operations: ~Copyable & ~Escapable,
             Call.Operations: ~Copyable & ~Escapable

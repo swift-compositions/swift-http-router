@@ -10,8 +10,8 @@ public import Serializer
 extension HTTP.Route {
 
     public struct Case<
-        Call: ~Copyable,
-        Focus: ~Copyable,
+        Call,
+        Focus,
         Content: Coding,
         Operations: ~Copyable & ~Escapable
     >: HTTP.Route.`Protocol`
@@ -52,18 +52,14 @@ extension HTTP.Route {
             try underlying.parse(&input)
         }
 
-        public borrowing func serialize(_ output: borrowing Call, into buffer: inout Buffer) throws(Failure) {
+        public borrowing func serialize(_ output: Call, into buffer: inout Buffer) throws(Failure) {
             try underlying.serialize(output, into: &buffer)
         }
     }
 }
 
 extension HTTP.Route.Case
-where
-    Call: ~Copyable,
-    Focus: ~Copyable,
-    Operations: ~Copyable & ~Escapable
-{
+where Operations: ~Copyable & ~Escapable {
 
     public init<Inner: Coding>(
         _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,

@@ -1,12 +1,12 @@
 import Byte
 import Byte_Standard_Library_Integration
 import Cursor_Standard_Library_Integration
-import Call_Algebra
 import Client
 import Coder
 import Either
 import HTTP
 import HTTP_Coder
+import Operation
 import Optic
 import Optic_Coder
 import Parser
@@ -16,13 +16,22 @@ import RFC_9110
 import Serializer
 import Testing
 
-enum Fixture {}
+enum Fixture {
+    enum Echo: Operation.Symbol {
+        typealias Input = String
+        typealias Output = String
+        typealias Failure = Never
+    }
 
-extension Fixture {
+    enum Shout: Operation.Symbol {
+        typealias Input = String
+        typealias Output = String
+        typealias Failure = Fixture.Refusal
+    }
 
-    enum Call: Equatable {
-        case echo(String)
-        case shout(String)
+    enum Call {
+        case echo(Operation.Application<Echo>)
+        case shout(Operation.Application<Shout>)
     }
 
     enum Refusal: Swift.Error, Equatable {
@@ -32,70 +41,44 @@ extension Fixture {
 
 extension Fixture.Call {
 
-    enum Branch {
-        enum Echo {}
-        enum Shout {}
-    }
-
-    struct Branches {
-
-        var echo: Call_Algebra.Call.Branch<Fixture.Call, String, Branch.Echo> {
+    struct Prisms {
+        var echo: Optic<Fixture.Call, Fixture.Call, Operation.Application<Fixture.Echo>, Operation.Application<Fixture.Echo>>.Prism {
             .init(
-                .init(
-                    embed: Fixture.Call.echo,
-                    extract: { call in
-                        switch call {
-                        case .echo(let text): text
-                        case .shout: nil
-                        }
-                    }
-                )
+                embed: Fixture.Call.echo,
+                extract: { call in if case .echo(let focus) = call { focus } else { nil } }
             )
         }
 
-        var shout: Call_Algebra.Call.Branch<Fixture.Call, String, Branch.Shout> {
+        var shout: Optic<Fixture.Call, Fixture.Call, Operation.Application<Fixture.Shout>, Operation.Application<Fixture.Shout>>.Prism {
             .init(
-                .init(
-                    embed: Fixture.Call.shout,
-                    extract: { call in
-                        switch call {
-                        case .echo: nil
-                        case .shout(let text): text
-                        }
-                    }
-                )
+                embed: Fixture.Call.shout,
+                extract: { call in if case .shout(let focus) = call { focus } else { nil } }
             )
         }
     }
+
+    static var prisms: Prisms { .init() }
 }
 
-extension Fixture.Call.Branch.Echo: Call_Algebra.Call.Operation {
-    typealias Input = String
-    typealias Output = String
-    typealias Failure = Never
-}
-
-extension Fixture.Call.Branch.Shout: Call_Algebra.Call.Operation {
-    typealias Input = String
-    typealias Output = String
-    typealias Failure = Fixture.Refusal
-}
-
-extension Fixture.Call: Call_Algebra.Call.`Protocol` {
-    typealias Coverage = Call_Algebra.Call.Coverage<Branch.Echo, Branch.Shout>
-
-    static var branches: Branches { .init() }
+extension Fixture.Call: Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.echo(let left), .echo(let right)): left.input == right.input
+        case (.shout(let left), .shout(let right)): left.input == right.input
+        default: false
+        }
+    }
 }
 
 extension Fixture: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.echo) {
+        HTTP.Route.Case(Call.prisms.echo) {
             .post
             HTTP.Target.resource(.init(unchecked: "/echo"))
             HTTP.Content(HTTP.Message.Content.Text())
         }
-        HTTP.Route.Case(\.shout) {
+        HTTP.Route.Case(Call.prisms.shout) {
             .post
             HTTP.Target.resource(.init(unchecked: "/shout"))
             HTTP.Content(HTTP.Message.Content.Text())
@@ -129,59 +112,36 @@ struct Digit: Coding {
     }
 }
 
-enum Single {}
+enum Single {
+    enum Respond: Operation.Symbol {
+        typealias Input = Int
+        typealias Output = String
+        typealias Failure = Fixture.Refusal
+    }
 
-extension Single {
-
-    enum Call: Equatable {
-        case respond(Int)
+    enum Call {
+        case respond(Operation.Application<Respond>)
     }
 }
 
 extension Single.Call {
 
-    enum Branch {
-        enum Respond {}
-    }
-
-    struct Branches {
-
-        var respond: Call_Algebra.Call.Branch<Single.Call, Int, Branch.Respond> {
+    struct Prisms {
+        var respond: Optic<Single.Call, Single.Call, Operation.Application<Single.Respond>, Operation.Application<Single.Respond>>.Prism {
             .init(
-                .init(
-                    embed: Single.Call.respond,
-                    extract: { call in
-                        switch call {
-                        case .respond(let digit): digit
-                        }
-                    }
-                )
+                embed: Single.Call.respond,
+                extract: { call in if case .respond(let focus) = call { focus } else { nil } }
             )
         }
     }
-}
 
-extension Single.Call.Branch.Respond: Call_Algebra.Call.Operation {
-    typealias Input = Int
-    typealias Output = String
-    typealias Failure = Fixture.Refusal
-}
-
-extension Single.Call: Call_Algebra.Call.Singleton {
-    typealias Operation = Branch.Respond
-    typealias Coverage = Branch.Respond
-
-    static var branches: Branches { .init() }
-
-    static var value: Optic<Self, Self, Int, Int>.Prism {
-        branches.respond.prism
-    }
+    static var prisms: Prisms { .init() }
 }
 
 extension Single: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.respond) {
+        HTTP.Route.Case(Call.prisms.respond) {
             .post
             HTTP.Target.resource(.init(unchecked: "/respond"))
             HTTP.Content(Digit())
@@ -189,7 +149,7 @@ extension Single: HTTP.Routable {
     }
 }
 
-extension Single: HTTP.Respondable {
+extension Single.Respond: HTTP.Respondable {
 
     static var response: some HTTP.Replying<Swift.Result<String, Fixture.Refusal>> {
         Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.success, absent: .mismatch) {
@@ -209,70 +169,65 @@ extension Single: HTTP.Respondable {
     }
 }
 
-enum Committed {}
+enum Committed {
+    enum Digit: Operation.Symbol {
+        typealias Input = Int
+        typealias Output = Int
+        typealias Failure = Never
+    }
 
-extension Committed {
+    enum Text: Operation.Symbol {
+        typealias Input = String
+        typealias Output = String
+        typealias Failure = Never
+    }
 
-    enum Call: Equatable {
-        case digit(Int)
-        case text(String)
+    enum Call {
+        case digit(Operation.Application<Digit>)
+        case text(Operation.Application<Text>)
     }
 }
 
 extension Committed.Call {
 
-    enum Branch {
-        enum Digit {}
-        enum Text {}
-    }
-
-    struct Branches {
-
-        var digit: Call_Algebra.Call.Branch<Committed.Call, Int, Branch.Digit> {
+    struct Prisms {
+        var digit: Optic<Committed.Call, Committed.Call, Operation.Application<Committed.Digit>, Operation.Application<Committed.Digit>>.Prism {
             .init(
-                .init(
-                    embed: Committed.Call.digit,
-                    extract: { call in
-                        switch call {
-                        case .digit(let digit): digit
-                        case .text: nil
-                        }
-                    }
-                )
+                embed: Committed.Call.digit,
+                extract: { call in if case .digit(let focus) = call { focus } else { nil } }
             )
         }
 
-        var text: Call_Algebra.Call.Branch<Committed.Call, String, Branch.Text> {
+        var text: Optic<Committed.Call, Committed.Call, Operation.Application<Committed.Text>, Operation.Application<Committed.Text>>.Prism {
             .init(
-                .init(
-                    embed: Committed.Call.text,
-                    extract: { call in
-                        switch call {
-                        case .digit: nil
-                        case .text(let text): text
-                        }
-                    }
-                )
+                embed: Committed.Call.text,
+                extract: { call in if case .text(let focus) = call { focus } else { nil } }
             )
         }
     }
+
+    static var prisms: Prisms { .init() }
 }
 
-extension Committed.Call: Call_Algebra.Call.`Protocol` {
-    typealias Coverage = Call_Algebra.Call.Coverage<Branch.Digit, Branch.Text>
-
-    static var branches: Branches { .init() }
+extension Committed.Call: Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.digit(let left), .digit(let right)): left.input == right.input
+        case (.text(let left), .text(let right)): left.input == right.input
+        default: false
+        }
+    }
 }
 
 extension Committed: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.digit) {
+        HTTP.Route.Case(Call.prisms.digit) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(Digit())
         }
-        HTTP.Route.Case(\.text) {
+        HTTP.Route.Case(Call.prisms.text) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(HTTP.Message.Content.Text())
@@ -378,7 +333,7 @@ struct `HTTP.Route Tests` {
 
         var digit = text
         digit.content = bytes("4")
-        #expect(try HTTP.route(Committed.self, digit) == .digit(4))
+        #expect(try HTTP.route(Committed.self, digit) == .digit(.init(4)))
 
         var unknown = HTTP.Route.Request(method: .get, target: .resource(.init(unchecked: "/same")))
         unknown.content = bytes("4")
@@ -389,14 +344,14 @@ struct `HTTP.Route Tests` {
 
     @Test
     func `the domain router round trips both calls`() throws {
-        for call in [Fixture.Call.echo("Ada"), .shout("Ada")] {
+        for call in [Fixture.Call.echo(.init("Ada")), .shout(.init("Ada"))] {
             let request = try HTTP.request(Fixture.self, for: call)
             #expect(request.method == .post)
             #expect(request.content == bytes("Ada"))
             #expect(try HTTP.route(Fixture.self, request) == call)
         }
         #expect(
-            try HTTP.request(Fixture.self, for: .shout("x")).target
+            try HTTP.request(Fixture.self, for: .shout(.init("x"))).target
                 == .resource(.init(unchecked: "/shout"))
         )
     }
@@ -405,13 +360,13 @@ struct `HTTP.Route Tests` {
     func `a response round trips its success and refusal rows`() throws {
         for result in [Swift.Result<String, Fixture.Refusal>.success("hello"), .failure(.refused)] {
             var response = HTTP.Route.Response.blank
-            try Single.response.serialize(result, into: &response)
+            try Single.Respond.response.serialize(result, into: &response)
             var input = response
-            #expect(try Single.response.parse(&input) == result)
+            #expect(try Single.Respond.response.parse(&input) == result)
             #expect(input.content == nil)
         }
         var response = HTTP.Route.Response.blank
-        try Single.response.serialize(.failure(.refused), into: &response)
+        try Single.Respond.response.serialize(.failure(.refused), into: &response)
         #expect(response.status == .badRequest)
     }
 
@@ -442,12 +397,12 @@ struct `HTTP.Route Tests` {
             run: { request throws(HTTP.Route.Error) in
                 let call = try HTTP.route(Single.self, request)
                 switch call {
-                case .respond(let digit):
-                    return try await HTTP.response(Single.self, to: digit, using: operation)
+                case .respond(let application):
+                    return try await HTTP.response(Single.Respond.self, to: application.input, using: operation)
                 }
             }
         )
-        let remote = HTTP.client(Single.self, transport: responder)
+        let remote = HTTP.client(Single.self, Single.Call.prisms.respond, transport: responder)
 
         #expect(try await remote(3) == "xxx")
 

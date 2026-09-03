@@ -9,7 +9,7 @@ public import Serializer
 
 extension HTTP.Route {
 
-    public struct Case<Call, Focus, Content: Coding>: HTTP.Route.`Protocol`
+    public struct Case<Call, Focus, Content: Coding, Operations>: HTTP.Route.`Protocol`
     where
         Content.Input == HTTP.Route.Request,
         Content.Output == Focus,
@@ -31,8 +31,16 @@ extension HTTP.Route {
         public init(
             _ prism: Optic<Call, Call, Focus, Focus>.Prism,
             @Parser.Builder<HTTP.Route.Request> content: () -> Content
-        ) {
+        ) where Focus: Operation.Coproduct, Operations == Focus.Operations {
             self.underlying = .init(prism, absent: .mismatch, content: content)
+        }
+
+        private init(
+            operations _: Operations.Type,
+            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+            content: Content
+        ) {
+            self.underlying = .init(prism, absent: .mismatch) { content }
         }
 
         public borrowing func parse(_ input: inout Input) throws(Failure) -> Call {
@@ -54,18 +62,20 @@ extension HTTP.Route.Case {
     where
         Focus == Operation.Application<Index>,
         Content == Coder.Map<Inner, Operation.Application<Index>>,
+        Operations == Index,
         Index.Input: Copyable & Escapable,
         Inner.Input == HTTP.Route.Request,
         Inner.Output == Index.Input,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
-        let inner = content()
-        self.init(prism) {
-            inner.map(
+        self.init(
+            operations: Index.self,
+            prism,
+            content: content().map(
                 to: { input in Operation.Application<Index>(input) },
                 from: { application in application.input }
             )
-        }
+        )
     }
 }

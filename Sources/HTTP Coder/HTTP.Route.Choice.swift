@@ -1,4 +1,5 @@
 import Coder
+public import Either
 public import HTTP
 public import RFC_9110
 public import Parser
@@ -20,6 +21,8 @@ extension HTTP.Route {
         public typealias Buffer = First.Message
 
         public typealias Failure = HTTP.Route.Error
+
+        public typealias Operations = Either<First.Operations, Second.Operations>
 
         public let first: First
 

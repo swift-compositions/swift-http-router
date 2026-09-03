@@ -39,7 +39,9 @@ enum Fixture {
     }
 }
 
-extension Fixture.Call {
+extension Fixture.Call: Operation.Coproduct {
+
+    typealias Operations = Either<Fixture.Echo, Fixture.Shout>
 
     struct Prisms {
         var echo: Optic<Fixture.Call, Fixture.Call, Operation.Application<Fixture.Echo>, Operation.Application<Fixture.Echo>>.Prism {
@@ -124,7 +126,9 @@ enum Single {
     }
 }
 
-extension Single.Call {
+extension Single.Call: Operation.Coproduct {
+
+    typealias Operations = Single.Respond
 
     struct Prisms {
         var respond: Optic<Single.Call, Single.Call, Operation.Application<Single.Respond>, Operation.Application<Single.Respond>>.Prism {
@@ -188,7 +192,9 @@ enum Committed {
     }
 }
 
-extension Committed.Call {
+extension Committed.Call: Operation.Coproduct {
+
+    typealias Operations = Either<Committed.Digit, Committed.Text>
 
     struct Prisms {
         var digit: Optic<Committed.Call, Committed.Call, Operation.Application<Committed.Digit>, Operation.Application<Committed.Digit>>.Prism {

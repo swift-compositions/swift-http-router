@@ -12,4 +12,6 @@ where
     Content.Failure == HTTP.Route.Error
 {
     public typealias Message = Input
+
+    public typealias Operations = Never
 }

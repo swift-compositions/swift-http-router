@@ -27,7 +27,9 @@ enum Leaf {
     }
 }
 
-extension Leaf.Call {
+extension Leaf.Call: Operation.Coproduct {
+
+    typealias Operations = Leaf.Op
 
     struct Prisms {
         var op: Optic<Leaf.Call, Leaf.Call, Operation.Application<Leaf.Op>, Operation.Application<Leaf.Op>>.Prism {
@@ -66,7 +68,9 @@ enum Middle {
     }
 }
 
-extension Middle.Call {
+extension Middle.Call: Operation.Coproduct {
+
+    typealias Operations = Leaf.Call
 
     struct Prisms {
         var leaf: Optic<Middle.Call, Middle.Call, Leaf.Call, Leaf.Call>.Prism {
@@ -110,7 +114,9 @@ enum Root {
     }
 }
 
-extension Root.Call {
+extension Root.Call: Operation.Coproduct {
+
+    typealias Operations = Either<Middle.Call, Root.Ping>
 
     struct Prisms {
         var middle: Optic<Root.Call, Root.Call, Middle.Call, Middle.Call>.Prism {
@@ -256,7 +262,9 @@ enum Wide {
     }
 }
 
-extension Wide.Call {
+extension Wide.Call: Operation.Coproduct {
+
+    typealias Operations = Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Either<Wide.C1, Wide.C2>, Wide.C3>, Wide.C4>, Wide.C5>, Wide.C6>, Wide.C7>, Wide.C8>, Wide.C9>, Wide.C10>, Wide.C11>, Wide.C12>, Wide.C13>, Wide.C14>, Wide.C15>, Wide.C16>
 
     struct Prisms {
         var c1: Optic<Wide.Call, Wide.Call, Operation.Application<Wide.C1>, Operation.Application<Wide.C1>>.Prism {

@@ -1,12 +1,14 @@
 public import Coder
+public import Either
 public import HTTP
+public import Operation
 public import RFC_9110
 public import Parser
 public import Serializer
 
 extension HTTP.Route {
 
-    public protocol `Protocol`<Message, Output>: Coding
+    public protocol `Protocol`<Message, Output, Operations>: Coding
     where
         Input == Message,
         Buffer == Message,
@@ -15,14 +17,17 @@ extension HTTP.Route {
         associatedtype Message: HTTP.Message.`Protocol`
 
         associatedtype Output
+
+        associatedtype Operations
     }
 }
 
 extension HTTP {
 
-    public typealias Routing<Call> = HTTP.Route.`Protocol`<
+    public typealias Routing<Call: Operation.Coproduct> = HTTP.Route.`Protocol`<
         HTTP.Route.Request,
-        Call
+        Call,
+        Call.Operations
     >
 
     public typealias Replying<Output> = Coding<

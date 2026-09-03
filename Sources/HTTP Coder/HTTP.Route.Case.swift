@@ -9,7 +9,12 @@ public import Serializer
 
 extension HTTP.Route {
 
-    public struct Case<Call, Focus, Content: Coding, Operations>: HTTP.Route.`Protocol`
+    public struct Case<
+        Call: ~Copyable,
+        Focus: ~Copyable,
+        Content: Coding,
+        Operations: ~Copyable & ~Escapable
+    >: HTTP.Route.`Protocol`
     where
         Content.Input == HTTP.Route.Request,
         Content.Output == Focus,
@@ -47,33 +52,38 @@ extension HTTP.Route {
             try underlying.parse(&input)
         }
 
-        public borrowing func serialize(_ output: Call, into buffer: inout Buffer) throws(Failure) {
+        public borrowing func serialize(_ output: borrowing Call, into buffer: inout Buffer) throws(Failure) {
             try underlying.serialize(output, into: &buffer)
         }
     }
 }
 
-extension HTTP.Route.Case {
+extension HTTP.Route.Case
+where
+    Call: ~Copyable,
+    Focus: ~Copyable,
+    Operations: ~Copyable & ~Escapable
+{
 
-    public init<Index: Operation.Symbol, Inner: Coding>(
-        _ prism: Optic<Call, Call, Operation.Application<Index>, Operation.Application<Index>>.Prism,
+    public init<Inner: Coding>(
+        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
-        Focus == Operation.Application<Index>,
-        Content == Coder.Map<Inner, Operation.Application<Index>>,
-        Operations == Index,
-        Index.Input: Copyable & Escapable,
+        Operations: Operation.Symbol,
+        Focus == Operation.Application<Operations>,
+        Content == Coder.Map<Inner, Operation.Application<Operations>>,
+        Operations.Input: Copyable & Escapable,
         Inner.Input == HTTP.Route.Request,
-        Inner.Output == Index.Input,
+        Inner.Output == Operations.Input,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
         self.init(
-            operations: Index.self,
+            operations: Operations.self,
             prism,
             content: content().map(
-                to: { input in Operation.Application<Index>(input) },
+                to: { input in Operation.Application<Operations>(input) },
                 from: { application in application.input }
             )
         )

@@ -231,7 +231,7 @@ extension Committed: HTTP.Routable {
         HTTP.Route.Case(Call.prisms.digit) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
-            HTTP.Content(Digit())
+            HTTP.Content(HTTP_Coder_Tests.Digit())
         }
         HTTP.Route.Case(Call.prisms.text) {
             .post

@@ -17,7 +17,11 @@ extension HTTP {
         Index.Output,
         Either<Either<Failure, HTTP.Route.Error>, Index.Failure>
     >
-    where Index.Input: Copyable & Escapable {
+    where
+        Domain.Call: ~Copyable,
+        Domain.Call.Operations: ~Copyable & ~Escapable,
+        Index.Input: Copyable & Escapable
+    {
         .init(
             run: { input throws(Either<Either<Failure, HTTP.Route.Error>, Index.Failure>) in
                 let request: HTTP.Route.Request

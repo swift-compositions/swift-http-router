@@ -10,7 +10,11 @@ extension HTTP.Route {
     public struct Choice<First: HTTP.Route.`Protocol`, Second: HTTP.Route.`Protocol`>: HTTP.Route.`Protocol`
     where
         First.Message == Second.Message,
-        First.Output == Second.Output
+        First.Output == Second.Output,
+        First.Output: ~Copyable,
+        Second.Output: ~Copyable,
+        First.Operations: ~Copyable & ~Escapable,
+        Second.Operations: ~Copyable & ~Escapable
     {
         public typealias Message = First.Message
 
@@ -43,7 +47,7 @@ extension HTTP.Route {
             }
         }
 
-        public borrowing func serialize(_ output: Output, into buffer: inout Buffer) throws(Failure) {
+        public borrowing func serialize(_ output: borrowing Output, into buffer: inout Buffer) throws(Failure) {
             let mark = buffer
             do {
                 try first.serialize(output, into: &buffer)

@@ -1,5 +1,4 @@
 public import Coder
-public import Either
 public import HTTP
 public import Operation
 public import RFC_9110
@@ -12,23 +11,25 @@ extension HTTP.Route {
     where
         Input == Message,
         Buffer == Message,
-        Failure == HTTP.Route.Error
+        Failure == HTTP.Route.Error,
+        Output: ~Copyable
     {
         associatedtype Message: HTTP.Message.`Protocol`
 
-        associatedtype Output
-
-        associatedtype Operations
+        associatedtype Operations: ~Copyable & ~Escapable
     }
 }
 
 extension HTTP {
 
-    public typealias Routing<Call: Operation.Coproduct> = HTTP.Route.`Protocol`<
+    public typealias Routing<Call> = HTTP.Route.`Protocol`<
         HTTP.Route.Request,
         Call,
         Call.Operations
     >
+    where
+        Call: Operation.Coproduct & ~Copyable,
+        Call.Operations: ~Copyable & ~Escapable
 
     public typealias Replying<Output> = Coding<
         HTTP.Route.Response,

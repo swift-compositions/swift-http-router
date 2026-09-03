@@ -135,7 +135,7 @@ struct `HTTP.Route Tests` {
 
         var buffer = HTTP.Route.Request.blank
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Case(Linear.Call.prisms.single, Linear.Call.folds.single) { Single.route }
+            try HTTP.Route.Case(Linear.Call.cases.single) { Single.route }
                 .serialize(Linear.Call.owned(.consume(Owned.Token(value: 1))), into: &buffer)
         }
         #expect(buffer == HTTP.Route.Request.blank)
@@ -187,7 +187,7 @@ struct `HTTP.Route Tests` {
                 }
             }
         )
-        let remote = HTTP.client(Single.self, Single.Call.prisms.respond, transport: responder)
+        let remote = HTTP.client(Single.self, \.respond, transport: responder)
 
         #expect(try await remote(3) == "xxx")
 

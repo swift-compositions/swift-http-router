@@ -23,3 +23,16 @@ extension HTTP {
         return buffer
     }
 }
+
+extension Operation._Application
+where
+    Index: HTTP.Respondable,
+    Input: Copyable & Escapable
+{
+
+    public func respond(
+        _ arrow: @escaping (Index.Input) async throws(Index.Failure) -> Index.Output
+    ) async throws(HTTP.Route.Error) -> HTTP.Route.Response {
+        try await HTTP.response(Index.self, to: input, using: .init(run: arrow))
+    }
+}

@@ -68,7 +68,7 @@ struct `HTTP.Route Semantics Tests` {
     func `serializing a call no arm owns is a mismatch`() throws {
         var buffer = HTTP.Route.Request.blank
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Case(Root.Call.prisms.ping) { HTTP.Method.get }
+            try HTTP.Route.Case(Root.Call.cases.ping) { HTTP.Method.get }
                 .serialize(.middle(.leaf(.op("x"))), into: &buffer)
         }
         #expect(buffer == HTTP.Route.Request.blank)

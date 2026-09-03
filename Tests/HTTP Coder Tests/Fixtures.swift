@@ -60,12 +60,12 @@ enum Fixture {
 extension Fixture: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.echo) {
+        HTTP.Route.Case(\.echo) {
             .post
             HTTP.Target.resource(.init(unchecked: "/echo"))
             HTTP.Content(HTTP.Message.Content.Text())
         }
-        HTTP.Route.Case(Call.prisms.shout) {
+        HTTP.Route.Case(\.shout) {
             .post
             HTTP.Target.resource(.init(unchecked: "/shout"))
             HTTP.Content(HTTP.Message.Content.Text())
@@ -83,7 +83,7 @@ enum Single {
 extension Single: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.respond) {
+        HTTP.Route.Case(\.respond) {
             .post
             HTTP.Target.resource(.init(unchecked: "/respond"))
             HTTP.Content(Digit())
@@ -122,12 +122,12 @@ enum Committed {
 extension Committed: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.digit) {
+        HTTP.Route.Case(\.digit) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(HTTP_Coder_Tests.Digit())
         }
-        HTTP.Route.Case(Call.prisms.text) {
+        HTTP.Route.Case(\.text) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
             HTTP.Content(HTTP.Message.Content.Text())
@@ -178,8 +178,7 @@ extension Owned: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
         HTTP.Route.Case(
-            Call.prisms.consume,
-            Call.folds.consume,
+            \.consume,
             content: Parser.Skip(
                 Parser.Skip(
                     HTTP.Content<HTTP.Route.Request, Owned.Token.Coder>(Owned.Token.coder),
@@ -209,10 +208,10 @@ enum Linear {
 extension Linear: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.owned, Call.folds.owned) {
+        HTTP.Route.Case(\.owned) {
             Owned.route
         }
-        HTTP.Route.Case(Call.prisms.single, Call.folds.single) {
+        HTTP.Route.Case(\.single) {
             Single.route
         }
     }
@@ -228,7 +227,7 @@ enum Leaf {
 extension Leaf: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.op) {
+        HTTP.Route.Case(\.op) {
             HTTP.Method.put
             HTTP.Target.resource(.init(unchecked: "/leaf"))
             HTTP.Content(HTTP.Message.Content.Text())
@@ -248,7 +247,7 @@ enum Middle {
 extension Middle: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.leaf) {
+        HTTP.Route.Case(\.leaf) {
             Leaf.route
         }
     }
@@ -268,11 +267,11 @@ enum Root {
 extension Root: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.ping) {
+        HTTP.Route.Case(\.ping) {
             HTTP.Method.get
             HTTP.Target.resource(.init(unchecked: "/ping"))
         }
-        HTTP.Route.Case(Call.prisms.middle) {
+        HTTP.Route.Case(\.middle) {
             Middle.route
         }
     }
@@ -303,22 +302,22 @@ enum Wide {
 extension Wide: HTTP.Routable {
 
     static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Call.prisms.c1) { .post; HTTP.Target.resource(.init(unchecked: "/c1")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c2) { .post; HTTP.Target.resource(.init(unchecked: "/c2")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c3) { .post; HTTP.Target.resource(.init(unchecked: "/c3")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c4) { .post; HTTP.Target.resource(.init(unchecked: "/c4")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c5) { .post; HTTP.Target.resource(.init(unchecked: "/c5")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c6) { .post; HTTP.Target.resource(.init(unchecked: "/c6")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c7) { .post; HTTP.Target.resource(.init(unchecked: "/c7")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c8) { .post; HTTP.Target.resource(.init(unchecked: "/c8")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c9) { .post; HTTP.Target.resource(.init(unchecked: "/c9")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c10) { .post; HTTP.Target.resource(.init(unchecked: "/c10")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c11) { .post; HTTP.Target.resource(.init(unchecked: "/c11")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c12) { .post; HTTP.Target.resource(.init(unchecked: "/c12")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c13) { .post; HTTP.Target.resource(.init(unchecked: "/c13")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c14) { .post; HTTP.Target.resource(.init(unchecked: "/c14")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c15) { .post; HTTP.Target.resource(.init(unchecked: "/c15")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(Call.prisms.c16) { .post; HTTP.Target.resource(.init(unchecked: "/c16")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c1) { .post; HTTP.Target.resource(.init(unchecked: "/c1")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c2) { .post; HTTP.Target.resource(.init(unchecked: "/c2")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c3) { .post; HTTP.Target.resource(.init(unchecked: "/c3")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c4) { .post; HTTP.Target.resource(.init(unchecked: "/c4")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c5) { .post; HTTP.Target.resource(.init(unchecked: "/c5")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c6) { .post; HTTP.Target.resource(.init(unchecked: "/c6")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c7) { .post; HTTP.Target.resource(.init(unchecked: "/c7")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c8) { .post; HTTP.Target.resource(.init(unchecked: "/c8")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c9) { .post; HTTP.Target.resource(.init(unchecked: "/c9")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c10) { .post; HTTP.Target.resource(.init(unchecked: "/c10")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c11) { .post; HTTP.Target.resource(.init(unchecked: "/c11")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c12) { .post; HTTP.Target.resource(.init(unchecked: "/c12")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c13) { .post; HTTP.Target.resource(.init(unchecked: "/c13")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c14) { .post; HTTP.Target.resource(.init(unchecked: "/c14")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c15) { .post; HTTP.Target.resource(.init(unchecked: "/c15")); HTTP.Content(HTTP.Message.Content.Text()) }
+        HTTP.Route.Case(\.c16) { .post; HTTP.Target.resource(.init(unchecked: "/c16")); HTTP.Content(HTTP.Message.Content.Text()) }
     }
 }
 

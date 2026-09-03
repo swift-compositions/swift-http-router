@@ -19,6 +19,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-atoms/swift-cursor.git", branch: "main"),
+        .package(url: "https://github.com/swift-compositions/swift-signature-derivation.git", branch: "main"),
         .package(
             url: "https://github.com/swift-atoms/swift-operation.git",
             branch: "main"
@@ -107,6 +108,7 @@ let package = Package(
                 .product(name: "Parser", package: "swift-parser"),
                 .product(name: "Parser Skip", package: "swift-parser"),
                 .product(name: "Serializer", package: "swift-serializer"),
+                .product(name: "Signature Derivation", package: "swift-signature-derivation"),
             ]
         ),
     ],

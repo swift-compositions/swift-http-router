@@ -79,45 +79,51 @@ extension HTTP.Route.Case
 where
     Call: ~Copyable,
     Focus: ~Copyable,
-    Operations: ~Copyable & ~Escapable
+    Operations: Operation.Symbol,
+    Operations.Input: ~Copyable & Escapable,
+    Focus == Operation.Application<Operations>
 {
 
-    public init<Inner: Coding>(
+    public init<Inner: Coder.`Protocol`>(
+        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
+        _ fold: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Fold,
+        content: Inner
+    )
+    where
+        Content == HTTP.Route.Application<Operations, Inner>,
+        Inner.Output: ~Copyable & Escapable,
+        Inner.Input: HTTP.Message.Requesting,
+        Inner.Output == Operations.Input,
+        Inner.Buffer == Inner.Input,
+        Inner.Failure == HTTP.Route.Error
+    {
+        self.init(operations: Operations.self, prism, fold, content: .init(content))
+    }
+
+    public init<Inner: Coder.`Protocol`>(
         _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
         _ fold: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Fold,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
-        Operations: Operation.Symbol,
-        Focus == Operation.Application<Operations>,
-        Content == Coder.Map<Inner, Operation.Application<Operations>>,
-        Operations.Input: Copyable & Escapable,
+        Content == HTTP.Route.Application<Operations, Inner>,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Input == HTTP.Route.Request,
         Inner.Output == Operations.Input,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
-        self.init(
-            operations: Operations.self,
-            prism,
-            fold,
-            content: content().map(
-                to: { input in Operation.Application<Operations>(input) },
-                from: { application in application.input }
-            )
-        )
+        self.init(prism, fold, content: content())
     }
 
-    public init<Inner: Coding>(
+    public init<Inner: Coder.`Protocol`>(
         _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
         Call: Copyable,
-        Operations: Operation.Symbol,
-        Focus == Operation.Application<Operations>,
-        Content == Coder.Map<Inner, Operation.Application<Operations>>,
-        Operations.Input: Copyable & Escapable,
+        Content == HTTP.Route.Application<Operations, Inner>,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Input == HTTP.Route.Request,
         Inner.Output == Operations.Input,
         Inner.Buffer == HTTP.Route.Request,

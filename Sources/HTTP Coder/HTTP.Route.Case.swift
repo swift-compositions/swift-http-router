@@ -31,7 +31,7 @@ extension HTTP.Route {
         public init(
             _ prism: Optic<Call, Call, Focus, Focus>.Prism,
             @Parser.Builder<HTTP.Route.Request> content: () -> Content
-        ) where Focus: Operation.Coproduct, Operations == Focus.Operations {
+        ) where Operations == Focus {
             self.underlying = .init(prism, absent: .mismatch, content: content)
         }
 

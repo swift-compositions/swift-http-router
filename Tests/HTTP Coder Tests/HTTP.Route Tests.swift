@@ -19,22 +19,22 @@ struct `HTTP.Route Tests` {
     @Test
     func `field coders mismatch on parse and set their field on serialize`() throws {
         var request = HTTP.Route.Request.blank
-        try HTTP.Route.Method(.post).serialize((), into: &request)
-        try HTTP.Route.Target(.resource(.init(unchecked: "/echo"))).serialize((), into: &request)
+        try HTTP.Method.post.serialize((), into: &request)
+        try HTTP.Target.resource(.init(unchecked: "/echo")).serialize((), into: &request)
         #expect(request.method == .post)
         #expect(request.target == .resource(.init(unchecked: "/echo")))
 
         var input = request
-        try HTTP.Route.Method(.post).parse(&input)
+        try HTTP.Method.post.parse(&input)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Method(.get).parse(&input)
+            try HTTP.Method.get.parse(&input)
         }
 
         var response = HTTP.Route.Response.blank
-        try HTTP.Route.Status(.badRequest).serialize((), into: &response)
+        try HTTP.Status.badRequest.serialize((), into: &response)
         #expect(response.status == .badRequest)
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Status(.ok).parse(&response)
+            try HTTP.Status.ok.parse(&response)
         }
     }
 
@@ -187,7 +187,7 @@ struct `HTTP.Route Tests` {
                 }
             }
         )
-        let remote = HTTP.client(Single.self, \.respond, transport: responder)
+        let remote = HTTP.client(Single.self, Single.Respond.self, transport: responder)
 
         #expect(try await remote(3) == "xxx")
 

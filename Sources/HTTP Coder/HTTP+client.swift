@@ -82,3 +82,25 @@ extension HTTP {
         client(Domain.self, Domain.Call.cases[keyPath: keyPath].prism, transport: transport)
     }
 }
+
+extension HTTP {
+
+    public static func client<Domain: HTTP.Routable, Index: HTTP.Respondable & Operation.Member, Failure: Swift.Error>(
+        _: Domain.Type,
+        _: Index.Type,
+        transport: HTTP.Client<Failure>
+    ) -> Client::Client<
+        Index.Input,
+        Index.Output,
+        Either<Either<Failure, HTTP.Route.Error>, Index.Failure>
+    >
+    where
+        Domain.Call: ~Copyable,
+        Domain.Call.Operations: ~Copyable & ~Escapable,
+        Index.Coproduct == Domain.Call,
+        Index.Case == Optic<Domain.Call, Domain.Call, Operation.Application<Index>, Operation.Application<Index>>.Case,
+        Index.Input: Copyable & Escapable
+    {
+        client(Domain.self, Index.keyPath, transport: transport)
+    }
+}

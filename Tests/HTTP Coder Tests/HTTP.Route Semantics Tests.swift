@@ -38,16 +38,16 @@ struct `HTTP.Route Semantics Tests` {
     @Test
     func `every field coder mismatches and never malforms`() throws {
         var request = HTTP.Route.Request(method: .get, target: .asterisk)
-        #expect(throws: HTTP.Route.Error.mismatch) { try HTTP.Route.Method(.post).parse(&request) }
+        #expect(throws: HTTP.Route.Error.mismatch) { try HTTP.Method.post.parse(&request) }
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Target(.resource(.init(unchecked: "/x"))).parse(&request)
+            try HTTP.Target.resource(.init(unchecked: "/x")).parse(&request)
         }
-        try HTTP.Route.Method(.get).parse(&request)
-        try HTTP.Route.Target(.asterisk).parse(&request)
+        try HTTP.Method.get.parse(&request)
+        try HTTP.Target.asterisk.parse(&request)
 
         var response = HTTP.Route.Response(status: .notFound)
-        #expect(throws: HTTP.Route.Error.mismatch) { try HTTP.Route.Status(.ok).parse(&response) }
-        try HTTP.Route.Status(.notFound).parse(&response)
+        #expect(throws: HTTP.Route.Error.mismatch) { try HTTP.Status.ok.parse(&response) }
+        try HTTP.Status.notFound.parse(&response)
     }
 
     @Test
@@ -68,7 +68,7 @@ struct `HTTP.Route Semantics Tests` {
     func `serializing a call no arm owns is a mismatch`() throws {
         var buffer = HTTP.Route.Request.blank
         #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Case(Root.Call.cases.ping) { HTTP.Method.get }
+            try HTTP.Route.Case(Root.Ping.self) { HTTP.Method.get }
                 .serialize(.middle(.leaf(.op("x"))), into: &buffer)
         }
         #expect(buffer == HTTP.Route.Request.blank)

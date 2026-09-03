@@ -1,17 +1,18 @@
-public import Call_Algebra
 public import Coder
 public import HTTP
-public import RFC_9110
-import Optic
+public import Operation
+public import Optic
 public import Optic_Coder
 public import Parser
+public import RFC_9110
 public import Serializer
 
 extension HTTP.Route {
 
-    public struct Case<Call: Call_Algebra.Call.`Protocol`, Identifier, Content: Coding>: HTTP.Route.`Protocol`
+    public struct Case<Call, Focus, Content: Coding>: HTTP.Route.`Protocol`
     where
         Content.Input == HTTP.Route.Request,
+        Content.Output == Focus,
         Content.Buffer == HTTP.Route.Request,
         Content.Failure == HTTP.Route.Error
     {
@@ -25,19 +26,13 @@ extension HTTP.Route {
 
         public typealias Failure = HTTP.Route.Error
 
-        public typealias Coverage = Identifier
-
-        public let underlying: Coder.Case<HTTP.Route.Request, Call, Content.Output, Content>
+        public let underlying: Coder.Case<HTTP.Route.Request, Call, Focus, Content>
 
         public init(
-            _ branch: KeyPath<Call.Branches, Call_Algebra.Call.Branch<Call, Content.Output, Identifier>>,
+            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
             @Parser.Builder<HTTP.Route.Request> content: () -> Content
         ) {
-            self.underlying = .init(
-                Call.branches[keyPath: branch].prism,
-                absent: .mismatch,
-                content: content
-            )
+            self.underlying = .init(prism, absent: .mismatch, content: content)
         }
 
         public borrowing func parse(_ input: inout Input) throws(Failure) -> Call {
@@ -46,6 +41,31 @@ extension HTTP.Route {
 
         public borrowing func serialize(_ output: Call, into buffer: inout Buffer) throws(Failure) {
             try underlying.serialize(output, into: &buffer)
+        }
+    }
+}
+
+extension HTTP.Route.Case {
+
+    public init<Index: Operation.Symbol, Inner: Coding>(
+        _ prism: Optic<Call, Call, Operation.Application<Index>, Operation.Application<Index>>.Prism,
+        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
+    )
+    where
+        Focus == Operation.Application<Index>,
+        Content == Coder.Map<Inner, Operation.Application<Index>>,
+        Index.Input: Copyable & Escapable,
+        Inner.Input == HTTP.Route.Request,
+        Inner.Output == Index.Input,
+        Inner.Buffer == HTTP.Route.Request,
+        Inner.Failure == HTTP.Route.Error
+    {
+        let inner = content()
+        self.init(prism) {
+            inner.map(
+                to: { input in Operation.Application<Index>(input) },
+                from: { application in application.input }
+            )
         }
     }
 }

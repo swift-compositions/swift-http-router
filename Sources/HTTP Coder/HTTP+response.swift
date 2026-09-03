@@ -1,28 +1,25 @@
-public import Call_Algebra
 public import Client
 public import HTTP
+public import Operation
 public import RFC_9110
 import Serializer
 
 extension HTTP {
 
-    public static func response<Domain: HTTP.Respondable>(
-        _: Domain.Type,
-        to input: Domain.Call.Operation.Input,
-        using client: Client::Client<
-            Domain.Call.Operation.Input,
-            Domain.Call.Operation.Output,
-            Domain.Call.Operation.Failure
-        >
-    ) async throws(HTTP.Route.Error) -> HTTP.Route.Response {
-        let result: Swift.Result<Domain.Call.Operation.Output, Domain.Call.Operation.Failure>
-        do throws(Domain.Call.Operation.Failure) {
+    public static func response<Index: HTTP.Respondable>(
+        _: Index.Type,
+        to input: Index.Input,
+        using client: Client::Client<Index.Input, Index.Output, Index.Failure>
+    ) async throws(HTTP.Route.Error) -> HTTP.Route.Response
+    where Index.Input: Copyable & Escapable {
+        let result: Swift.Result<Index.Output, Index.Failure>
+        do throws(Index.Failure) {
             result = .success(try await client(input))
         } catch {
             result = .failure(error)
         }
         var buffer = HTTP.Route.Response.blank
-        try Domain.response.serialize(result, into: &buffer)
+        try Index.response.serialize(result, into: &buffer)
         return buffer
     }
 }

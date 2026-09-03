@@ -1,4 +1,3 @@
-public import Call_Algebra
 import Coder
 public import HTTP
 public import RFC_9110
@@ -21,8 +20,6 @@ extension HTTP.Route {
         public typealias Buffer = First.Message
 
         public typealias Failure = HTTP.Route.Error
-
-        public typealias Coverage = Call_Algebra.Call.Coverage<First.Coverage, Second.Coverage>
 
         public let first: First
 

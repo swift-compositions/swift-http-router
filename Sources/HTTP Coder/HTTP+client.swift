@@ -1,30 +1,28 @@
-public import Call_Algebra
 public import Client
 public import Either
 public import HTTP
-import Optic
+public import Operation
+public import Optic
 import Parser
 public import RFC_9110
 
 extension HTTP {
 
-    public static func client<Domain, Failure: Swift.Error>(
+    public static func client<Domain: HTTP.Routable, Index: HTTP.Respondable, Failure: Swift.Error>(
         _: Domain.Type,
+        _ prism: Optic<Domain.Call, Domain.Call, Operation.Application<Index>, Operation.Application<Index>>.Prism,
         transport: HTTP.Client<Failure>
     ) -> Client::Client<
-        Domain.Call.Operation.Input,
-        Domain.Call.Operation.Output,
-        Either<Either<Failure, HTTP.Route.Error>, Domain.Call.Operation.Failure>
+        Index.Input,
+        Index.Output,
+        Either<Either<Failure, HTTP.Route.Error>, Index.Failure>
     >
-    where
-        Domain: HTTP.Routable & HTTP.Respondable,
-        Domain.Call: Call_Algebra.Call.Singleton
-    {
+    where Index.Input: Copyable & Escapable {
         .init(
-            run: { input throws(Either<Either<Failure, HTTP.Route.Error>, Domain.Call.Operation.Failure>) in
+            run: { input throws(Either<Either<Failure, HTTP.Route.Error>, Index.Failure>) in
                 let request: HTTP.Route.Request
                 do throws(HTTP.Route.Error) {
-                    request = try HTTP.request(Domain.self, for: Domain.Call.value.embed(input))
+                    request = try HTTP.request(Domain.self, for: prism.embed(.init(input)))
                 } catch {
                     throw .left(.right(error))
                 }
@@ -36,10 +34,10 @@ extension HTTP {
                     throw .left(.left(error))
                 }
 
-                let result: Swift.Result<Domain.Call.Operation.Output, Domain.Call.Operation.Failure>
+                let result: Swift.Result<Index.Output, Index.Failure>
                 do throws(HTTP.Route.Error) {
                     var input = received
-                    result = try Domain.response.parse(&input)
+                    result = try Index.response.parse(&input)
                     guard input.content == nil else {
                         throw .malformed
                     }

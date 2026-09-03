@@ -1,4 +1,3 @@
-public import Call_Algebra
 public import Coder
 public import HTTP
 public import RFC_9110
@@ -7,7 +6,7 @@ public import Serializer
 
 extension HTTP.Route {
 
-    public protocol `Protocol`<Message, Output, Coverage>: Coding
+    public protocol `Protocol`<Message, Output>: Coding
     where
         Input == Message,
         Buffer == Message,
@@ -16,17 +15,14 @@ extension HTTP.Route {
         associatedtype Message: HTTP.Message.`Protocol`
 
         associatedtype Output
-
-        associatedtype Coverage
     }
 }
 
 extension HTTP {
 
-    public typealias Routing<Call: Call_Algebra.Call.`Protocol`> = HTTP.Route.`Protocol`<
+    public typealias Routing<Call> = HTTP.Route.`Protocol`<
         HTTP.Route.Request,
-        Call,
-        Call.Coverage
+        Call
     >
 
     public typealias Replying<Output> = Coding<

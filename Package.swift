@@ -20,7 +20,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/swift-atoms/swift-cursor.git", branch: "main"),
         .package(
-            url: "https://github.com/swift-compositions/swift-call.git",
+            url: "https://github.com/swift-atoms/swift-operation.git",
             branch: "main"
         ),
         .package(
@@ -72,11 +72,10 @@ let package = Package(
         .target(
             name: "HTTP Coder",
             dependencies: [
-                .product(name: "Call", package: "swift-call"),
+                .product(name: "Operation", package: "swift-operation"),
                 .product(name: "Client", package: "swift-client"),
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
-                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Standard Library Integration", package: "swift-byte"),
                 .product(name: "Cursor Standard Library Integration", package: "swift-cursor"),
@@ -93,12 +92,11 @@ let package = Package(
             name: "HTTP Coder Tests",
             dependencies: [
                 "HTTP Coder",
-                .product(name: "Call", package: "swift-call"),
+                .product(name: "Operation", package: "swift-operation"),
                 .product(name: "Client", package: "swift-client"),
                 .product(name: "HTTP", package: "swift-http"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
-                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Standard Library Integration", package: "swift-byte"),
                 .product(name: "Cursor Standard Library Integration", package: "swift-cursor"),

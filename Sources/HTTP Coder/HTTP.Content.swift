@@ -1,7 +1,6 @@
 public import Coder
 public import HTTP
 public import Parser
-public import RFC_9110
 public import Serializer
 
 extension HTTP {
@@ -21,6 +20,17 @@ extension HTTP {
     }
 }
 
+extension HTTP.Content where Value.Output: ~Copyable {
+
+    public init<Item: Coder.Codable>(_: Item.Type)
+    where
+        Value == Item.Coder,
+        Item.Coder.Output == Item
+    {
+        self.init(Item.coder)
+    }
+}
+
 extension HTTP.Content: Parser.`Protocol`
 where Value.Output: ~Copyable {
 
@@ -28,7 +38,7 @@ where Value.Output: ~Copyable {
 
     public typealias Output = Value.Output
 
-    public typealias Failure = HTTP.Route.Error
+    public typealias Failure = HTTP.Router.Error
 
     public borrowing func parse(_ input: inout Message) throws(Failure) -> Output {
         guard let content = input.content else {

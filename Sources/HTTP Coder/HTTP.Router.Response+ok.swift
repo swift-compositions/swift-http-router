@@ -2,7 +2,6 @@ public import Byte
 public import Coder
 public import HTTP
 public import Parser
-public import RFC_9110
 public import Serializer
 
 extension HTTP.Message.Response where Content == [Byte] {
@@ -11,7 +10,7 @@ extension HTTP.Message.Response where Content == [Byte] {
         .init(status: .ok)
     }
 
-    public static func ok<Value: Coder.Codable>(_ value: Value) throws(HTTP.Route.Error) -> Self
+    public static func ok<Value: Coder.Codable>(_ value: Value) throws(HTTP.Router.Error) -> Self
     where
         Value.Coder.Input == ArraySlice<Byte>,
         Value.Coder.Output == Value,
@@ -20,7 +19,7 @@ extension HTTP.Message.Response where Content == [Byte] {
         try .init(.ok, value)
     }
 
-    public static func badRequest<Value: Coder.Codable>(_ value: Value) throws(HTTP.Route.Error) -> Self
+    public static func badRequest<Value: Coder.Codable>(_ value: Value) throws(HTTP.Router.Error) -> Self
     where
         Value.Coder.Input == ArraySlice<Byte>,
         Value.Coder.Output == Value,
@@ -29,23 +28,23 @@ extension HTTP.Message.Response where Content == [Byte] {
         try .init(.badRequest, value)
     }
 
-    public init<Value: Coder.Codable>(_ status: HTTP.Status, _ value: Value) throws(HTTP.Route.Error)
+    public init<Value: Coder.Codable>(_ status: HTTP.Status, _ value: Value) throws(HTTP.Router.Error)
     where
         Value.Coder.Input == ArraySlice<Byte>,
         Value.Coder.Output == Value,
         Value.Coder.Buffer == [Byte]
     {
         self.init(status: status)
-        try HTTP.Content<Self, Value.Coder>(Value.coder).serialize(value, into: &self)
+        try HTTP.Content<Self, Value.Coder>(Value.self).serialize(value, into: &self)
     }
 
-    public func decoded<Value: Coder.Codable>(as _: Value.Type) throws(HTTP.Route.Error) -> Value
+    public func decoded<Value: Coder.Codable>(as _: Value.Type) throws(HTTP.Router.Error) -> Value
     where
         Value.Coder.Input == ArraySlice<Byte>,
         Value.Coder.Output == Value,
         Value.Coder.Buffer == [Byte]
     {
         var input = self
-        return try HTTP.Content<Self, Value.Coder>(Value.coder).parse(&input)
+        return try HTTP.Content<Self, Value.Coder>(Value.self).parse(&input)
     }
 }

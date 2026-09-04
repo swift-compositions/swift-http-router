@@ -1,14 +1,22 @@
 import Byte
+import Byte_Coder
+import Byte_Standard_Library_Integration
+import Checkpoint_Coder
 import Coder
 import Either
 import HTTP
 import HTTP_Coder
 import Operation
+import Operation_Coder
 import Optic
+import Optic_Coder
 import Parser
 import RFC_3986
-import RFC_9110
 import Serializer
+import String_Coder
+import Tagged
+import Tagged_Coder
+import Tagged_Standard_Library_Integration
 import Testing
 
 private struct Unprintable: Coding {
@@ -18,8 +26,11 @@ private struct Unprintable: Coding {
     }
 
     typealias Input = ArraySlice<Byte>
+
     typealias Output = String
+
     typealias Buffer = [Byte]
+
     typealias Failure = Error
 
     func parse(_ input: inout ArraySlice<Byte>) throws(Error) -> String {
@@ -32,61 +43,50 @@ private struct Unprintable: Coding {
 }
 
 @Suite
-struct `HTTP.Route Tests` {
+struct `HTTP.Router Tests` {
 
     @Test
     func `field coders mismatch on parse and set their field on serialize`() throws {
-        var request = HTTP.Route.Request.blank
+        var request = HTTP.Router.Request.blank
         try HTTP.Method.post.serialize((), into: &request)
-        try HTTP.Target.resource(.init(unchecked: "/echo")).serialize((), into: &request)
+        try HTTP.Target(unchecked: "/echo").serialize((), into: &request)
         #expect(request.method == .post)
-        #expect(request.target == .resource(.init(unchecked: "/echo")))
+        #expect(request.target == HTTP.Target(unchecked: "/echo"))
 
         var input = request
         try HTTP.Method.post.parse(&input)
-        try HTTP.Target.resource(.init(unchecked: "/echo")).parse(&input)
-        #expect(throws: HTTP.Route.Error.mismatch) {
+        try HTTP.Target(unchecked: "/echo").parse(&input)
+        #expect(throws: HTTP.Router.Error.mismatch) {
             try HTTP.Method.get.parse(&input)
         }
-        #expect(throws: HTTP.Route.Error.mismatch) {
+        #expect(throws: HTTP.Router.Error.mismatch) {
             try HTTP.Target.asterisk.parse(&input)
         }
     }
 
     @Test
     func `the content bridge round trips and commits on trailing or missing bytes`() throws {
-        let content = HTTP.Content<HTTP.Route.Request, Numeral.Coder>(Numeral.coder)
-        var request = HTTP.Route.Request.blank
-        try content.serialize(Numeral(7), into: &request)
+        let content = HTTP.Content<HTTP.Router.Request, Limit.Coder>(Limit.self)
+        var request = HTTP.Router.Request.blank
+        try content.serialize(Limit(7), into: &request)
         #expect(request.content == bytes("7"))
 
         var input = request
-        #expect(try content.parse(&input) == Numeral(7))
+        #expect(try content.parse(&input) == Limit(7))
         #expect(input.content == nil)
 
-        var trailing = HTTP.Route.Request.blank
-        trailing.content = bytes("78")
-        #expect(throws: HTTP.Route.Error.malformed) {
-            try content.parse(&trailing)
-        }
-
-        var missing = HTTP.Route.Request.blank
-        #expect(throws: HTTP.Route.Error.malformed) {
+        var missing = HTTP.Router.Request.blank
+        #expect(throws: HTTP.Router.Error.malformed) {
             try content.parse(&missing)
         }
 
-        var unprintable = HTTP.Route.Request.blank
-        #expect(throws: HTTP.Route.Error.unprintable) {
-            try content.serialize(Numeral(42), into: &unprintable)
-        }
-
-        var refused = HTTP.Route.Request(method: .post, target: .asterisk)
+        var refused = HTTP.Router.Request(method: .post, target: .asterisk)
         refused.content = bytes("anything")
-        #expect(throws: HTTP.Route.Error.malformed) {
+        #expect(throws: HTTP.Router.Error.malformed) {
             try HTTP.Content(Unprintable()).parse(&refused)
         }
-        var buffer = HTTP.Route.Request.blank
-        #expect(throws: HTTP.Route.Error.unprintable) {
+        var buffer = HTTP.Router.Request.blank
+        #expect(throws: HTTP.Router.Error.unprintable) {
             try HTTP.Content(Unprintable()).serialize("anything", into: &buffer)
         }
         #expect(buffer.content == nil)
@@ -94,23 +94,23 @@ struct `HTTP.Route Tests` {
 
     @Test
     func `a mismatching arm retries and a malformed arm commits`() throws {
-        var text = HTTP.Route.Request(method: .post, target: .resource(.init(unchecked: "/same")))
-        text.content = bytes("hello")
-        #expect(throws: HTTP.Route.Error.malformed) {
-            try HTTP.route(Committed.self, text)
+        var name = HTTP.Router.Request(method: .post, target: HTTP.Target(unchecked: "/same"))
+        name.content = bytes("hello")
+        #expect(throws: HTTP.Router.Error.malformed) {
+            try HTTP.route(Committed.self, name)
         }
 
-        var digit = text
-        digit.content = bytes("4")
-        guard case .digit(let application) = try HTTP.route(Committed.self, digit) else {
-            Issue.record("expected the digit branch")
+        var count = name
+        count.content = bytes("4")
+        guard case .count(let application) = try HTTP.route(Committed.self, count) else {
+            Issue.record("expected the count branch")
             return
         }
-        #expect(application.input == Numeral(4))
+        #expect(application.input == Limit(4))
 
-        var unknown = HTTP.Route.Request(method: .get, target: .resource(.init(unchecked: "/same")))
+        var unknown = HTTP.Router.Request(method: .get, target: HTTP.Target(unchecked: "/same"))
         unknown.content = bytes("4")
-        #expect(throws: HTTP.Route.Error.mismatch) {
+        #expect(throws: HTTP.Router.Error.mismatch) {
             try HTTP.route(Committed.self, unknown)
         }
     }
@@ -119,7 +119,7 @@ struct `HTTP.Route Tests` {
     func `a domain router round trips its calls`() throws {
         let echo = try HTTP.request(Fixture.self, for: .echo(Word("Ada")))
         #expect(echo.method == .post)
-        #expect(echo.target == .resource(.init(unchecked: "/echo")))
+        #expect(echo.target == HTTP.Target(unchecked: "/echo"))
         #expect(echo.content == bytes("Ada"))
         guard case .echo(let application) = try HTTP.route(Fixture.self, echo) else {
             Issue.record("expected the echo branch")
@@ -128,7 +128,7 @@ struct `HTTP.Route Tests` {
         #expect(application.input == Word("Ada"))
 
         let shout = try HTTP.request(Fixture.self, for: .shout(Word("Ada")))
-        #expect(shout.target == .resource(.init(unchecked: "/shout")))
+        #expect(shout.target == HTTP.Target(unchecked: "/shout"))
         guard case .shout(let shouted) = try HTTP.route(Fixture.self, shout) else {
             Issue.record("expected the shout branch")
             return
@@ -141,7 +141,7 @@ struct `HTTP.Route Tests` {
         let consume = Linear.Call.owned(.consume(Owned.Token(value: 4)))
         let consumeRequest = try HTTP.request(Linear.self, for: consume)
         let consumeRequestAgain = try HTTP.request(Linear.self, for: consume)
-        #expect(consumeRequest.target == .resource(.init(unchecked: "/consume")))
+        #expect(consumeRequest.target == HTTP.Target(unchecked: "/consume"))
         #expect(consumeRequest.content == bytes("4"))
         #expect(consumeRequest == consumeRequestAgain)
         let routedConsume = try HTTP.route(Linear.self, consumeRequest)
@@ -154,29 +154,32 @@ struct `HTTP.Route Tests` {
         #expect(visited)
         #expect(value == 4)
 
-        let respond = Linear.Call.single(.respond(Numeral(4)))
+        let respond = Linear.Call.single(.respond(Limit(4)))
         let respondRequest = try HTTP.request(Linear.self, for: respond)
-        #expect(respondRequest.target == .resource(.init(unchecked: "/respond")))
+        #expect(respondRequest.target == HTTP.Target(unchecked: "/respond"))
         let routedRespond = try HTTP.route(Linear.self, respondRequest)
-        var digit = Numeral(0)
+        var limit = Limit(0)
         _ = Linear.Call.folds.single(routedRespond) { single in
-            digit = Single.Call.folds.respond.extract(single)?.input ?? Numeral(0)
+            limit = Single.Call.folds.respond.extract(single)?.input ?? Limit(0)
         }
-        #expect(digit == Numeral(4))
+        #expect(limit == Limit(4))
+    }
 
-        var buffer = HTTP.Route.Request.blank
-        #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Case(Linear.Call.cases.single) { Single.router }
+    @Test
+    func `serializing a call no arm owns is a mismatch`() throws {
+        var buffer = HTTP.Router.Request.blank
+        #expect(throws: HTTP.Router.Error.mismatch) {
+            try Coder.Case(Linear.Call.cases.single, absent: HTTP.Router.Error.mismatch) { Single.router }
                 .serialize(Linear.Call.owned(.consume(Owned.Token(value: 1))), into: &buffer)
         }
-        #expect(buffer == HTTP.Route.Request.blank)
+        #expect(buffer == HTTP.Router.Request.blank)
     }
 
     @Test
     func `a three-level domain routes through nested cases`() throws {
         let deep = try HTTP.request(Root.self, for: .middle(.leaf(.op(Word("deep")))))
         #expect(deep.method == .put)
-        #expect(deep.target == .resource(.init(unchecked: "/leaf")))
+        #expect(deep.target == HTTP.Target(unchecked: "/leaf"))
         #expect(deep.content == bytes("deep"))
         guard case .middle(.leaf(.op(let op))) = try HTTP.route(Root.self, deep) else {
             Issue.record("expected the leaf operation")
@@ -194,30 +197,20 @@ struct `HTTP.Route Tests` {
 
         var extra = ping
         extra.content = bytes("noise")
-        #expect(throws: HTTP.Route.Error.malformed) {
+        #expect(throws: HTTP.Router.Error.malformed) {
             try HTTP.route(Root.self, extra)
         }
     }
 
     @Test
-    func `serializing a call no arm owns is a mismatch`() throws {
-        var buffer = HTTP.Route.Request.blank
-        #expect(throws: HTTP.Route.Error.mismatch) {
-            try HTTP.Route.Case(Root.Ping.self) { HTTP.Method.get }
-                .serialize(.middle(.leaf(.op(Word("x")))), into: &buffer)
-        }
-        #expect(buffer == HTTP.Route.Request.blank)
-    }
-
-    @Test
-    func `sixteen request routes type-check as one committed choice`() throws {
+    func `sixteen request routes are one alternation`() throws {
         for call in [Wide.Call.c1(Word("a")), .c9(Word("i")), .c16(Word("p"))] {
             let request = try HTTP.request(Wide.self, for: call)
             let routed = try HTTP.route(Wide.self, request)
             #expect(try HTTP.request(Wide.self, for: routed) == request)
         }
-        let unknown = HTTP.Route.Request(method: .post, target: .resource(.init(unchecked: "/c17")))
-        #expect(throws: HTTP.Route.Error.mismatch) {
+        let unknown = HTTP.Router.Request(method: .post, target: HTTP.Target(unchecked: "/c17"))
+        #expect(throws: HTTP.Router.Error.mismatch) {
             try HTTP.route(Wide.self, unknown)
         }
     }
@@ -231,8 +224,8 @@ struct `HTTP.Route Tests` {
         let home = try HTTP.request(Site.self, for: .home)
         #expect(home.method == .get)
         #expect(home.content == nil)
-        #expect(try HTTP.target(Site.self, for: .home) == .resource(.init(unchecked: "/")))
-        #expect(try HTTP.target(Site.self, for: .api(.shout(Word("a")))) == .resource(.init(unchecked: "/shout")))
+        #expect(try HTTP.target(Site.self, for: .home) == HTTP.Target(unchecked: "/"))
+        #expect(try HTTP.target(Site.self, for: .api(.shout(Word("a")))) == HTTP.Target(unchecked: "/shout"))
 
         guard case .home = try HTTP.route(Site.self, home) else {
             Issue.record("expected the home page")
@@ -243,5 +236,36 @@ struct `HTTP.Route Tests` {
             return
         }
         #expect(application.input == Word("a"))
+    }
+
+    @Test
+    func `responses carry values and refusals and read them back`() throws {
+        let word = try HTTP.Router.Response.ok(Word("hello"))
+        #expect(word.status == .ok)
+        #expect(word.content == bytes("hello"))
+        #expect(try word.decoded(as: Word.self) == Word("hello"))
+
+        let refusal = try HTTP.Router.Response.badRequest(Refusal.refused)
+        #expect(refusal.status == .badRequest)
+        #expect(refusal.content == bytes("refused"))
+        #expect(try refusal.decoded(as: Refusal.self) == .refused)
+
+        let created = try HTTP.Router.Response(201, Limit(3))
+        #expect(created.status == 201)
+        #expect(created.content == bytes("3"))
+
+        let empty = HTTP.Router.Response.ok()
+        #expect(empty.status == .ok)
+        #expect(empty.content == nil)
+
+        #expect(throws: HTTP.Router.Error.malformed) {
+            try word.decoded(as: Limit.self)
+        }
+        #expect(throws: HTTP.Router.Error.malformed) {
+            try empty.decoded(as: Word.self)
+        }
+        #expect(throws: HTTP.Router.Error.unprintable) {
+            try HTTP.Router.Response.ok(Ineffable.value)
+        }
     }
 }

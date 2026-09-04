@@ -1,24 +1,24 @@
+public import Checkpoint_Coder
 public import Coder
 public import HTTP
-public import RFC_9110
 
-extension HTTP.Route {
+extension HTTP.Router {
 
     @resultBuilder
     public struct Builder<Output: ~Copyable> {}
 }
 
-extension HTTP.Route.Builder where Output: ~Copyable {
+extension HTTP.Router.Builder where Output: ~Copyable {
 
     public static func buildExpression<Route: Coding>(
         _ route: Route
     ) -> Route
     where
-        Route.Input == HTTP.Route.Request,
+        Route.Input == HTTP.Router.Request,
         Route.Output == Output,
         Route.Output: ~Copyable,
-        Route.Buffer == HTTP.Route.Request,
-        Route.Failure == HTTP.Route.Error
+        Route.Buffer == HTTP.Router.Request,
+        Route.Failure == HTTP.Router.Error
     {
         route
     }
@@ -27,11 +27,11 @@ extension HTTP.Route.Builder where Output: ~Copyable {
         first route: Route
     ) -> Route
     where
-        Route.Input == HTTP.Route.Request,
+        Route.Input == HTTP.Router.Request,
         Route.Output == Output,
         Route.Output: ~Copyable,
-        Route.Buffer == HTTP.Route.Request,
-        Route.Failure == HTTP.Route.Error
+        Route.Buffer == HTTP.Router.Request,
+        Route.Failure == HTTP.Router.Error
     {
         route
     }
@@ -39,19 +39,19 @@ extension HTTP.Route.Builder where Output: ~Copyable {
     public static func buildPartialBlock<First: Coding, Second: Coding>(
         accumulated first: First,
         next second: Second
-    ) -> HTTP.Route.Choice<First, Second>
+    ) -> Coder.OneOf.Two<First, Second>
     where
-        First.Input == HTTP.Route.Request,
+        First.Input == HTTP.Router.Request,
         First.Output == Output,
         First.Output: ~Copyable,
-        First.Buffer == HTTP.Route.Request,
-        First.Failure == HTTP.Route.Error,
-        Second.Input == HTTP.Route.Request,
+        First.Buffer == HTTP.Router.Request,
+        First.Failure == HTTP.Router.Error,
+        Second.Input == HTTP.Router.Request,
         Second.Output == Output,
         Second.Output: ~Copyable,
-        Second.Buffer == HTTP.Route.Request,
-        Second.Failure == HTTP.Route.Error
+        Second.Buffer == HTTP.Router.Request,
+        Second.Failure == HTTP.Router.Error
     {
-        .init(first, second)
+        .init(first, second, absent: .mismatch)
     }
 }

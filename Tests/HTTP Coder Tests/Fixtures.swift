@@ -1,81 +1,65 @@
 import Byte
+import Byte_Coder
 import Byte_Standard_Library_Integration
+import Checkpoint
+import Checkpoint_Coder
 import Coder
-import Cursor_Standard_Library_Integration
 import Either
 import HTTP
 import HTTP_Coder
 import Operation
+import Operation_Coder
 import Optic
+import Optic_Coder
 import Parser
 import Parser_Skip
 import Prism_Derivation
 import RFC_3986
-import RFC_9110
 import Serializer
 import Signature_Derivation
+import String_Coder
+import Tagged
+import Tagged_Coder
+import Tagged_Standard_Library_Integration
 
 func bytes(_ text: String) -> [Byte] {
     text.utf8.map(Byte.init(bitPattern:))
 }
 
-struct Word: Equatable, Coder.Codable {
+enum Text {}
 
-    let text: String
+typealias Word = Tagged<Text, String>
 
-    init(_ text: String) {
-        self.text = text
-    }
+enum Size {}
 
-    static var coder: some Coding<ArraySlice<Byte>, Self, [Byte], HTTP.Message.Content.Error> {
-        HTTP.Message.Content.Text().map(to: { Self($0) }, from: { $0.text })
-    }
-}
-
-struct Numeral: Equatable, Coder.Codable {
-
-    let value: Int
-
-    init(_ value: Int) {
-        self.value = value
-    }
-
-    enum Error: Swift.Error, Equatable {
-        case notADigit
-    }
-
-    struct Coder: Coding {
-
-        typealias Input = ArraySlice<Byte>
-        typealias Output = Numeral
-        typealias Buffer = [Byte]
-        typealias Failure = Numeral.Error
-
-        func parse(_ input: inout ArraySlice<Byte>) throws(Numeral.Error) -> Numeral {
-            guard let byte = input.next(), (0x30...0x39).contains(byte.bitPattern) else {
-                throw .notADigit
-            }
-            return Numeral(Int(byte.bitPattern - 0x30))
-        }
-
-        func serialize(_ output: Numeral, into buffer: inout [Byte]) throws(Numeral.Error) {
-            guard (0...9).contains(output.value) else {
-                throw .notADigit
-            }
-            buffer.append(Byte(bitPattern: UInt8(0x30 + output.value)))
-        }
-    }
-
-    static var coder: Coder { .init() }
-}
+typealias Limit = Tagged<Size, Int>
 
 enum Refusal: Swift.Error, Equatable, Coder.Codable {
 
     case refused
 
-    static var coder: some Coding<ArraySlice<Byte>, Self, [Byte], HTTP.Message.Content.Error> {
-        HTTP.Message.Content.Text().map(to: { _ in Refusal.refused }, from: { _ in "refused" })
+    static var coder: Coder.Map<Swift.String.Coder, Refusal> {
+        Swift.String.coder.map(to: { _ in Refusal.refused }, from: { _ in "refused" })
     }
+}
+
+enum Ineffable: Equatable, Coder.Codable {
+
+    case value
+
+    struct Coder: Byte.Coding<Ineffable, Swift.String.Coder.Error> {
+
+        func parse(_ input: inout ArraySlice<Byte>) throws(Swift.String.Coder.Error) -> Ineffable {
+            input = input[input.endIndex...]
+            return .value
+        }
+
+        func serialize(_ output: Ineffable, into buffer: inout [Byte]) throws(Swift.String.Coder.Error) {
+            throw .invalid
+        }
+    }
+
+    static var coder: Coder { .init() }
 }
 
 enum Fixture {
@@ -88,64 +72,73 @@ enum Fixture {
 
 extension Fixture: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.echo) {
-            .post
-            HTTP.Target.resource(.init(unchecked: "/echo"))
-            HTTP.Content(Word.coder)
-        }
-        HTTP.Route.Case(\.shout) {
-            .post
-            HTTP.Target.resource(.init(unchecked: "/shout"))
-            HTTP.Content(Word.coder)
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            echo: HTTP.route {
+                .post
+                HTTP.Target(unchecked: "/echo")
+                HTTP.Content(Word.self)
+            },
+            shout: HTTP.route {
+                .post
+                HTTP.Target(unchecked: "/shout")
+                HTTP.Content(Word.self)
+            }
+        )
     }
 }
 
 enum Single {
     @Signature
     protocol `Protocol` {
-        func respond(_ digit: Numeral) async throws(Refusal) -> Word
+        func respond(_ limit: Limit) async throws(Refusal) -> Word
     }
 }
 
 extension Single: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Respond.self) {
-            .post
-            HTTP.Target.resource(.init(unchecked: "/respond"))
-            HTTP.Content(Numeral.coder)
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            respond: HTTP.route {
+                .post
+                HTTP.Target(unchecked: "/respond")
+                HTTP.Content(Limit.self)
+            }
+        )
     }
 }
 
 enum Committed {
     @Signature
     protocol `Protocol` {
-        func digit(_ value: Numeral) async -> Numeral
-        func text(_ value: Word) async -> Word
+        func count(_ limit: Limit) async -> Limit
+        func name(_ word: Word) async -> Word
     }
 }
 
 extension Committed: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.digit) {
-            .post
-            HTTP.Target.resource(.init(unchecked: "/same"))
-            HTTP.Content(Numeral.coder)
-        }
-        HTTP.Route.Case(\.text) {
-            .post
-            HTTP.Target.resource(.init(unchecked: "/same"))
-            HTTP.Content(Word.coder)
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            count: HTTP.route {
+                .post
+                HTTP.Target(unchecked: "/same")
+                HTTP.Content(Limit.self)
+            },
+            name: HTTP.route {
+                .post
+                HTTP.Target(unchecked: "/same")
+                HTTP.Content(Word.self)
+            }
+        )
     }
 }
 
 enum Owned {
-    struct Token: ~Copyable {
+    struct Token {
         let value: Int
     }
 
@@ -158,22 +151,26 @@ enum Owned {
 extension Owned.Token {
 
     struct Coder: Coding {
-        typealias Input = ArraySlice<Byte>
-        typealias Output = Owned.Token
-        typealias Buffer = [Byte]
-        typealias Failure = HTTP.Route.Error
 
-        func parse(_ input: inout ArraySlice<Byte>) throws(HTTP.Route.Error) -> Owned.Token {
-            do throws(Numeral.Error) {
-                return .init(value: try Numeral.coder.parse(&input).value)
+        typealias Input = ArraySlice<Byte>
+
+        typealias Output = Owned.Token
+
+        typealias Buffer = [Byte]
+
+        typealias Failure = HTTP.Router.Error
+
+        func parse(_ input: inout ArraySlice<Byte>) throws(HTTP.Router.Error) -> Owned.Token {
+            do throws(Swift.String.Coder.Error) {
+                return .init(value: try Swift.String.Coder.Lossless<Int>().parse(&input))
             } catch {
                 throw .malformed
             }
         }
 
-        func serialize(_ output: borrowing Owned.Token, into buffer: inout [Byte]) throws(HTTP.Route.Error) {
-            do throws(Numeral.Error) {
-                try Numeral.coder.serialize(Numeral(output.value), into: &buffer)
+        func serialize(_ output: borrowing Owned.Token, into buffer: inout [Byte]) throws(HTTP.Router.Error) {
+            do throws(Swift.String.Coder.Error) {
+                try Swift.String.Coder.Lossless<Int>().serialize(output.value, into: &buffer)
             } catch {
                 throw .unprintable
             }
@@ -185,20 +182,22 @@ extension Owned.Token {
 
 extension Owned: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(
-            Consume.self,
-            content: Parser.Skip(
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            consume: HTTP.route {
                 Parser.Skip(
-                    HTTP.Content<HTTP.Route.Request, Owned.Token.Coder>(Owned.Token.coder),
-                    HTTP.Method.post,
+                    Parser.Skip(
+                        HTTP.Content<HTTP.Router.Request, Owned.Token.Coder>(Owned.Token.coder),
+                        HTTP.Method.post,
+                        { $0 },
+                        { $0 }
+                    ),
+                    HTTP.Target(unchecked: "/consume"),
                     { $0 },
                     { $0 }
-                ),
-                HTTP.Target.resource(.init(unchecked: "/consume")),
-                { $0 },
-                { $0 }
-            )
+                )
+            }
         )
     }
 }
@@ -216,13 +215,12 @@ enum Linear {
 
 extension Linear: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.owned) {
-            Owned.router
-        }
-        HTTP.Route.Case(\.single) {
-            Single.router
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            owned: Owned.router,
+            single: Single.router
+        )
     }
 }
 
@@ -235,12 +233,15 @@ enum Leaf {
 
 extension Leaf: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.op) {
-            HTTP.Method.put
-            HTTP.Target.resource(.init(unchecked: "/leaf"))
-            HTTP.Content(Word.coder)
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            op: HTTP.route {
+                .put
+                HTTP.Target(unchecked: "/leaf")
+                HTTP.Content(Word.self)
+            }
+        )
     }
 }
 
@@ -255,10 +256,11 @@ enum Middle {
 
 extension Middle: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.leaf) {
-            Leaf.router
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            leaf: Leaf.router
+        )
     }
 }
 
@@ -275,14 +277,15 @@ enum Root {
 
 extension Root: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.ping) {
-            HTTP.Method.get
-            HTTP.Target.resource(.init(unchecked: "/ping"))
-        }
-        HTTP.Route.Case(\.middle) {
-            Middle.router
-        }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            ping: HTTP.route {
+                .get
+                HTTP.Target(unchecked: "/ping")
+            },
+            middle: Middle.router
+        )
     }
 }
 
@@ -310,23 +313,26 @@ enum Wide {
 
 extension Wide: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Call> {
-        HTTP.Route.Case(\.c1) { .post; HTTP.Target.resource(.init(unchecked: "/c1")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c2) { .post; HTTP.Target.resource(.init(unchecked: "/c2")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c3) { .post; HTTP.Target.resource(.init(unchecked: "/c3")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c4) { .post; HTTP.Target.resource(.init(unchecked: "/c4")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c5) { .post; HTTP.Target.resource(.init(unchecked: "/c5")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c6) { .post; HTTP.Target.resource(.init(unchecked: "/c6")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c7) { .post; HTTP.Target.resource(.init(unchecked: "/c7")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c8) { .post; HTTP.Target.resource(.init(unchecked: "/c8")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c9) { .post; HTTP.Target.resource(.init(unchecked: "/c9")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c10) { .post; HTTP.Target.resource(.init(unchecked: "/c10")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c11) { .post; HTTP.Target.resource(.init(unchecked: "/c11")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c12) { .post; HTTP.Target.resource(.init(unchecked: "/c12")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c13) { .post; HTTP.Target.resource(.init(unchecked: "/c13")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c14) { .post; HTTP.Target.resource(.init(unchecked: "/c14")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c15) { .post; HTTP.Target.resource(.init(unchecked: "/c15")); HTTP.Content(Word.coder) }
-        HTTP.Route.Case(\.c16) { .post; HTTP.Target.resource(.init(unchecked: "/c16")); HTTP.Content(Word.coder) }
+    static var router: some HTTP.Router.`Protocol`<Call> {
+        Call.Router(
+            absent: .mismatch,
+            c1: HTTP.route { .post; HTTP.Target(unchecked: "/c1"); HTTP.Content(Word.self) },
+            c2: HTTP.route { .post; HTTP.Target(unchecked: "/c2"); HTTP.Content(Word.self) },
+            c3: HTTP.route { .post; HTTP.Target(unchecked: "/c3"); HTTP.Content(Word.self) },
+            c4: HTTP.route { .post; HTTP.Target(unchecked: "/c4"); HTTP.Content(Word.self) },
+            c5: HTTP.route { .post; HTTP.Target(unchecked: "/c5"); HTTP.Content(Word.self) },
+            c6: HTTP.route { .post; HTTP.Target(unchecked: "/c6"); HTTP.Content(Word.self) },
+            c7: HTTP.route { .post; HTTP.Target(unchecked: "/c7"); HTTP.Content(Word.self) },
+            c8: HTTP.route { .post; HTTP.Target(unchecked: "/c8"); HTTP.Content(Word.self) },
+            c9: HTTP.route { .post; HTTP.Target(unchecked: "/c9"); HTTP.Content(Word.self) },
+            c10: HTTP.route { .post; HTTP.Target(unchecked: "/c10"); HTTP.Content(Word.self) },
+            c11: HTTP.route { .post; HTTP.Target(unchecked: "/c11"); HTTP.Content(Word.self) },
+            c12: HTTP.route { .post; HTTP.Target(unchecked: "/c12"); HTTP.Content(Word.self) },
+            c13: HTTP.route { .post; HTTP.Target(unchecked: "/c13"); HTTP.Content(Word.self) },
+            c14: HTTP.route { .post; HTTP.Target(unchecked: "/c14"); HTTP.Content(Word.self) },
+            c15: HTTP.route { .post; HTTP.Target(unchecked: "/c15"); HTTP.Content(Word.self) },
+            c16: HTTP.route { .post; HTTP.Target(unchecked: "/c16"); HTTP.Content(Word.self) }
+        )
     }
 }
 
@@ -338,12 +344,12 @@ enum Site {
 
 extension Site: HTTP.Routable {
 
-    static var router: some HTTP.Routing<Self> {
-        HTTP.Route.Case(prisms.home) {
+    static var router: some HTTP.Router.`Protocol`<Self> {
+        Coder.Case(prisms.home, absent: .mismatch) {
             .get
-            HTTP.Target.resource(.init(unchecked: "/"))
+            HTTP.Target(unchecked: "/")
         }
-        HTTP.Route.Case(prisms.api) {
+        Coder.Case(prisms.api, absent: .mismatch) {
             Fixture.router
         }
     }

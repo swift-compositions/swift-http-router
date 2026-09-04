@@ -4,10 +4,10 @@ public import HTTP
 
 extension HTTP {
 
-    public static func refusal<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func refusal<Reason: Swift.Error & Coder.Codable>(
         _ status: HTTP.Status,
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -16,9 +16,9 @@ extension HTTP {
         .init(HTTP.Reply.Status(status, HTTP.Content(Reason.self)))
     }
 
-    public static func badRequest<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func badRequest<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -27,9 +27,9 @@ extension HTTP {
         HTTP.refusal(.badRequest, Reason.self)
     }
 
-    public static func unauthorized<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func unauthorized<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -38,9 +38,9 @@ extension HTTP {
         HTTP.refusal(.unauthorized, Reason.self)
     }
 
-    public static func forbidden<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func forbidden<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -49,9 +49,9 @@ extension HTTP {
         HTTP.refusal(.forbidden, Reason.self)
     }
 
-    public static func notFound<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func notFound<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -60,9 +60,9 @@ extension HTTP {
         HTTP.refusal(.notFound, Reason.self)
     }
 
-    public static func conflict<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func conflict<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,
@@ -71,9 +71,9 @@ extension HTTP {
         HTTP.refusal(.conflict, Reason.self)
     }
 
-    public static func unprocessableContent<Value, Reason: Swift.Error & Coder.Codable>(
+    public static func unprocessableContent<Reason: Swift.Error & Coder.Codable>(
         _: Reason.Type
-    ) -> HTTP.Reply.Refusal<Value, HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
     where
         Reason.Coder.Input == ArraySlice<Byte>,
         Reason.Coder.Output == Reason,

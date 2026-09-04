@@ -6,7 +6,7 @@ public import Serializer
 
 extension HTTP.Reply {
 
-    public struct Refusal<Value, Body: Coding>
+    public struct Refusal<Body: Coding>
     where
         Body.Input == HTTP.Router.Response,
         Body.Output: Swift.Error,
@@ -25,13 +25,13 @@ extension HTTP.Reply.Refusal: Parser.`Protocol` {
 
     public typealias Input = HTTP.Router.Response
 
-    public typealias Output = Either<Body.Output, Value>
+    public typealias Output = Either<Body.Output, Never>
 
     public typealias Failure = HTTP.Router.Error
 
     public borrowing func parse(
         _ input: inout HTTP.Router.Response
-    ) throws(HTTP.Router.Error) -> Either<Body.Output, Value> {
+    ) throws(HTTP.Router.Error) -> Either<Body.Output, Never> {
         .left(try body.parse(&input))
     }
 }
@@ -41,15 +41,15 @@ extension HTTP.Reply.Refusal: Serializer.`Protocol` {
     public typealias Buffer = HTTP.Router.Response
 
     public borrowing func serialize(
-        _ output: borrowing Either<Body.Output, Value>,
+        _ output: borrowing Either<Body.Output, Never>,
         into buffer: inout HTTP.Router.Response
     ) throws(HTTP.Router.Error) {
         let reply = copy output
         switch reply {
         case .left(let refusal):
             try body.serialize(refusal, into: &buffer)
-        case .right:
-            throw .mismatch
+        case .right(let never):
+            switch never {}
         }
     }
 }

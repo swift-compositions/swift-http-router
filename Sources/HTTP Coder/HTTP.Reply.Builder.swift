@@ -6,22 +6,19 @@ public import HTTP
 extension HTTP.Reply {
 
     @resultBuilder
-    public struct Builder<Failure: Swift.Error, Output> {}
+    public struct Builder {}
 }
 
 extension HTTP.Reply.Builder {
 
-    public static func buildExpression<Body: Coding>(
-        _ entry: HTTP.Reply.Success<Failure, Body>
-    ) -> HTTP.Reply.Success<Failure, Body>
-    where Body.Output == Output {
-        entry
-    }
-
-    public static func buildExpression<Body: Coding>(
-        _ entry: HTTP.Reply.Refusal<Output, Body>
-    ) -> HTTP.Reply.Refusal<Output, Body>
-    where Body.Output == Failure {
+    public static func buildExpression<Entry: Coding>(
+        _ entry: Entry
+    ) -> Entry
+    where
+        Entry.Input == HTTP.Router.Response,
+        Entry.Buffer == HTTP.Router.Response,
+        Entry.Failure == HTTP.Router.Error
+    {
         entry
     }
 
@@ -30,11 +27,44 @@ extension HTTP.Reply.Builder {
     ) -> Entry
     where
         Entry.Input == HTTP.Router.Response,
-        Entry.Output == Either<Failure, Output>,
         Entry.Buffer == HTTP.Router.Response,
         Entry.Failure == HTTP.Router.Error
     {
         entry
+    }
+
+    public static func buildPartialBlock<Success: Coding, Refusal: Coding, Value, Reason>(
+        accumulated success: Success,
+        next refusal: Refusal
+    ) -> HTTP.Reply.Pair<Success, Refusal, Value, Reason>
+    where
+        Success.Input == HTTP.Router.Response,
+        Success.Output == Either<Never, Value>,
+        Success.Buffer == HTTP.Router.Response,
+        Success.Failure == HTTP.Router.Error,
+        Refusal.Input == HTTP.Router.Response,
+        Refusal.Output == Either<Reason, Never>,
+        Refusal.Buffer == HTTP.Router.Response,
+        Refusal.Failure == HTTP.Router.Error
+    {
+        .init(success, refusal)
+    }
+
+    public static func buildPartialBlock<Refusal: Coding, Success: Coding, Reason, Value>(
+        accumulated refusal: Refusal,
+        next success: Success
+    ) -> HTTP.Reply.Pair<Success, Refusal, Value, Reason>
+    where
+        Refusal.Input == HTTP.Router.Response,
+        Refusal.Output == Either<Reason, Never>,
+        Refusal.Buffer == HTTP.Router.Response,
+        Refusal.Failure == HTTP.Router.Error,
+        Success.Input == HTTP.Router.Response,
+        Success.Output == Either<Never, Value>,
+        Success.Buffer == HTTP.Router.Response,
+        Success.Failure == HTTP.Router.Error
+    {
+        .init(success, refusal)
     }
 
     public static func buildPartialBlock<First: Coding, Second: Coding>(
@@ -43,11 +73,10 @@ extension HTTP.Reply.Builder {
     ) -> Coder.OneOf.Two<First, Second>
     where
         First.Input == HTTP.Router.Response,
-        First.Output == Either<Failure, Output>,
         First.Buffer == HTTP.Router.Response,
         First.Failure == HTTP.Router.Error,
         Second.Input == HTTP.Router.Response,
-        Second.Output == Either<Failure, Output>,
+        Second.Output == First.Output,
         Second.Buffer == HTTP.Router.Response,
         Second.Failure == HTTP.Router.Error
     {

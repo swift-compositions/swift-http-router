@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-http-coder",
+    name: "swift-http-router",
     platforms: [
         .macOS(.v27),
         .iOS(.v27),
@@ -13,8 +13,12 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "HTTP Coder",
-            targets: ["HTTP Coder"]
+            name: "HTTP Router",
+            targets: ["HTTP Router"]
+        ),
+        .library(
+            name: "HTTP Reply",
+            targets: ["HTTP Reply"]
         ),
     ],
     dependencies: [
@@ -34,32 +38,47 @@ let package = Package(
         .package(url: "https://github.com/swift-molecules/swift-prism-derivation.git", branch: "main"),
         .package(url: "https://github.com/swift-molecules/swift-string-coder.git", branch: "main"),
         .package(url: "https://github.com/swift-molecules/swift-tagged-coder.git", branch: "main"),
-        .package(url: "https://github.com/swift-compositions/swift-http.git", branch: "main"),
+        .package(url: "https://github.com/swift-standards/swift-http.git", branch: "main"),
         .package(url: "https://github.com/swift-compositions/swift-signature-derivation.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-3986.git", branch: "main"),
+        .package(url: "https://github.com/swift-ietf/swift-rfc-9110.git", branch: "main"),
     ],
     targets: [
         .target(
-            name: "HTTP Coder",
+            name: "HTTP Router",
             dependencies: [
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Checkpoint", package: "swift-checkpoint"),
+                .product(name: "Checkpoint Coder", package: "swift-checkpoint-coder"),
+                .product(name: "Coder", package: "swift-coder"),
+                .product(name: "HTTP", package: "swift-http"),
+                .product(name: "Operation", package: "swift-operation"),
+                .product(name: "Operation Coder", package: "swift-operation-coder"),
+                .product(name: "Parser", package: "swift-parser"),
+                .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+                .product(name: "Serializer", package: "swift-serializer"),
+            ]
+        ),
+        .target(
+            name: "HTTP Reply",
+            dependencies: [
+                "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Checkpoint Coder", package: "swift-checkpoint-coder"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
                 .product(name: "HTTP", package: "swift-http"),
-                .product(name: "Operation", package: "swift-operation"),
-                .product(name: "Operation Coder", package: "swift-operation-coder"),
                 .product(name: "Parser", package: "swift-parser"),
-                .product(name: "Parser Skip", package: "swift-parser"),
-                .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Serializer", package: "swift-serializer"),
             ]
         ),
         .testTarget(
-            name: "HTTP Coder Tests",
+            name: "HTTP Router Tests",
             dependencies: [
-                "HTTP Coder",
+                "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Coder", package: "swift-byte-coder"),
                 .product(name: "Byte Standard Library Integration", package: "swift-byte"),
@@ -76,8 +95,29 @@ let package = Package(
                 .product(name: "Parser Skip", package: "swift-parser"),
                 .product(name: "Prism Derivation", package: "swift-prism-derivation"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Serializer", package: "swift-serializer"),
                 .product(name: "Signature Derivation", package: "swift-signature-derivation"),
+                .product(name: "String Coder", package: "swift-string-coder"),
+                .product(name: "Tagged", package: "swift-tagged"),
+                .product(name: "Tagged Coder", package: "swift-tagged-coder"),
+                .product(name: "Tagged Standard Library Integration", package: "swift-tagged"),
+            ]
+        ),
+        .testTarget(
+            name: "HTTP Reply Tests",
+            dependencies: [
+                "HTTP Reply",
+                "HTTP Router",
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Byte Coder", package: "swift-byte-coder"),
+                .product(name: "Byte Standard Library Integration", package: "swift-byte"),
+                .product(name: "Coder", package: "swift-coder"),
+                .product(name: "Either", package: "swift-either"),
+                .product(name: "HTTP", package: "swift-http"),
+                .product(name: "Parser", package: "swift-parser"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+                .product(name: "Serializer", package: "swift-serializer"),
                 .product(name: "String Coder", package: "swift-string-coder"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "Tagged Coder", package: "swift-tagged-coder"),

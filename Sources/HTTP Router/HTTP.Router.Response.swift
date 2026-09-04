@@ -1,13 +1,14 @@
 public import Byte
 public import Checkpoint
 public import HTTP
+public import RFC_9110
 
 extension HTTP.Router {
 
-    public typealias Request = HTTP.Message.Request<[Byte]>
+    public typealias Response = HTTP.Message.Response<[Byte]>
 }
 
-extension HTTP.Message.Request: @retroactive Restorable where Content == [Byte] {
+extension HTTP.Message.Response: @retroactive Restorable where Content == [Byte] {
 
     public typealias Checkpoint = Self
 

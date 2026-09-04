@@ -1,4 +1,5 @@
 public import HTTP
+import HTTP_Router
 
 extension HTTP {
 

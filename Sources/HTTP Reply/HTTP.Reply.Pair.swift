@@ -2,6 +2,7 @@ import Checkpoint
 public import Coder
 public import Either
 public import HTTP
+public import HTTP_Router
 public import Parser
 public import Serializer
 

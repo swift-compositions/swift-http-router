@@ -6,7 +6,7 @@ import Checkpoint_Coder
 import Coder
 import Either
 import HTTP
-import HTTP_Coder
+import HTTP_Router
 import Operation
 import Operation_Coder
 import Optic
@@ -15,6 +15,7 @@ import Parser
 import Parser_Skip
 import Prism_Derivation
 import RFC_3986
+import RFC_9110
 import Serializer
 import Signature_Derivation
 import String_Coder
@@ -41,25 +42,6 @@ enum Refusal: Swift.Error, Equatable, Coder.Codable {
     static var coder: Coder.Map<Swift.String.Coder, Refusal> {
         Swift.String.coder.map(to: { _ in Refusal.refused }, from: { _ in "refused" })
     }
-}
-
-enum Ineffable: Equatable, Coder.Codable {
-
-    case value
-
-    struct Coder: Byte.Coding<Ineffable, Swift.String.Coder.Error> {
-
-        func parse(_ input: inout ArraySlice<Byte>) throws(Swift.String.Coder.Error) -> Ineffable {
-            input = input[input.endIndex...]
-            return .value
-        }
-
-        func serialize(_ output: Ineffable, into buffer: inout [Byte]) throws(Swift.String.Coder.Error) {
-            throw .invalid
-        }
-    }
-
-    static var coder: Coder { .init() }
 }
 
 enum Fixture {
@@ -205,8 +187,8 @@ extension Owned: HTTP.Routable {
 enum Linear {
     @Signature
     protocol `Protocol` {
-        associatedtype Owned: HTTP_Coder_Tests::Owned.`Protocol`
-        associatedtype Single: HTTP_Coder_Tests::Single.`Protocol`
+        associatedtype Owned: HTTP_Router_Tests::Owned.`Protocol`
+        associatedtype Single: HTTP_Router_Tests::Single.`Protocol`
 
         var owned: Owned { get }
         var single: Single { get }
@@ -248,7 +230,7 @@ extension Leaf: HTTP.Routable {
 enum Middle {
     @Signature
     protocol `Protocol` {
-        associatedtype Leaf: HTTP_Coder_Tests::Leaf.`Protocol`
+        associatedtype Leaf: HTTP_Router_Tests::Leaf.`Protocol`
 
         var leaf: Leaf { get }
     }
@@ -267,7 +249,7 @@ extension Middle: HTTP.Routable {
 enum Root {
     @Signature
     protocol `Protocol` {
-        associatedtype Middle: HTTP_Coder_Tests::Middle.`Protocol`
+        associatedtype Middle: HTTP_Router_Tests::Middle.`Protocol`
 
         var middle: Middle { get }
 

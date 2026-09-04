@@ -5,13 +5,14 @@ import Checkpoint_Coder
 import Coder
 import Either
 import HTTP
-import HTTP_Coder
+import HTTP_Router
 import Operation
 import Operation_Coder
 import Optic
 import Optic_Coder
 import Parser
 import RFC_3986
+import RFC_9110
 import Serializer
 import String_Coder
 import Tagged
@@ -241,36 +242,5 @@ struct `HTTP.Router Tests` {
             return
         }
         #expect(application.input == Word("a"))
-    }
-
-    @Test
-    func `responses carry values and refusals and read them back`() throws {
-        let word = try HTTP.Router.Response.ok(Word("hello"))
-        #expect(word.status == .ok)
-        #expect(word.content == bytes("hello"))
-        #expect(try word.decoded(as: Word.self) == Word("hello"))
-
-        let refusal = try HTTP.Router.Response.badRequest(Refusal.refused)
-        #expect(refusal.status == .badRequest)
-        #expect(refusal.content == bytes("refused"))
-        #expect(try refusal.decoded(as: Refusal.self) == .refused)
-
-        let created = try HTTP.Router.Response(201, Limit(3))
-        #expect(created.status == 201)
-        #expect(created.content == bytes("3"))
-
-        let empty = HTTP.Router.Response.ok()
-        #expect(empty.status == .ok)
-        #expect(empty.content == nil)
-
-        #expect(throws: HTTP.Router.Error.malformed) {
-            try word.decoded(as: Limit.self)
-        }
-        #expect(throws: HTTP.Router.Error.malformed) {
-            try empty.decoded(as: Word.self)
-        }
-        #expect(throws: HTTP.Router.Error.unprintable) {
-            try HTTP.Router.Response.ok(Ineffable.value)
-        }
     }
 }

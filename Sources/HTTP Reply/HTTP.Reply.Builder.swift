@@ -2,6 +2,7 @@ public import Checkpoint_Coder
 public import Coder
 public import Either
 public import HTTP
+public import HTTP_Router
 
 extension HTTP.Reply {
 

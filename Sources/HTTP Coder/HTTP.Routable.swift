@@ -1,22 +1,21 @@
+public import Coder
 public import HTTP
-public import Operation
+public import Parser
 public import RFC_9110
+public import Serializer
 
 extension HTTP {
 
     public protocol Routable {
 
-        associatedtype Call: Operation.Coproduct & ~Copyable
-
-        associatedtype Route: HTTP.Route.`Protocol`
+        associatedtype Router: Coding
         where
-            Route.Message == HTTP.Route.Request,
-            Route.Output == Call,
-            Route.Output: ~Copyable,
-            Route.Operations: ~Copyable & ~Escapable,
-            Call.Operations: ~Copyable & ~Escapable
+            Router.Input == HTTP.Route.Request,
+            Router.Output: ~Copyable,
+            Router.Buffer == HTTP.Route.Request,
+            Router.Failure == HTTP.Route.Error
 
-        @HTTP.Route.Builder<Call>
-        static var route: Route { get }
+        @HTTP.Route.Builder<Router.Output>
+        static var router: Router { get }
     }
 }

@@ -9,20 +9,13 @@ public import Serializer
 
 extension HTTP.Route {
 
-    public struct Case<
-        Call: ~Copyable,
-        Focus: ~Copyable,
-        Content: Coding,
-        Operations: ~Copyable & ~Escapable
-    >: HTTP.Route.`Protocol`
+    public struct Case<Call: ~Copyable, Focus: ~Copyable, Content: Coding>: Coding
     where
         Content.Input == HTTP.Route.Request,
         Content.Output == Focus,
         Content.Buffer == HTTP.Route.Request,
         Content.Failure == HTTP.Route.Error
     {
-        public typealias Message = HTTP.Route.Request
-
         public typealias Input = HTTP.Route.Request
 
         public typealias Output = Call
@@ -37,32 +30,16 @@ extension HTTP.Route {
             _ prism: Optic<Call, Call, Focus, Focus>.Prism,
             _ fold: Optic<Call, Call, Focus, Focus>.Fold,
             content: Content
-        ) where Operations == Focus {
-            self.underlying = .init(prism, fold, absent: .mismatch) { content }
-        }
-
-        public init(
-            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
-            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
-            @Parser.Builder<HTTP.Route.Request> content: () -> Content
-        ) where Operations == Focus {
-            self.init(prism, fold, content: content())
-        }
-
-        public init(
-            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
-            @Parser.Builder<HTTP.Route.Request> content: () -> Content
-        ) where Operations == Focus, Call: Copyable {
-            self.init(prism, .init(prism), content: content())
-        }
-
-        private init(
-            operations _: Operations.Type,
-            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
-            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
-            content: Content
         ) {
             self.underlying = .init(prism, fold, absent: .mismatch) { content }
+        }
+
+        public init(
+            _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+            _ fold: Optic<Call, Call, Focus, Focus>.Fold,
+            @Parser.Builder<HTTP.Route.Request> content: () -> Content
+        ) {
+            self.init(prism, fold, content: content())
         }
 
         public borrowing func parse(_ input: inout Input) throws(Failure) -> Call {
@@ -75,194 +52,144 @@ extension HTTP.Route {
     }
 }
 
-extension HTTP.Route.Case
-where
-    Call: ~Copyable,
-    Focus: ~Copyable,
-    Operations: Operation.Symbol,
-    Operations.Input: ~Copyable & Escapable,
-    Focus == Operation.Application<Operations>
-{
+extension HTTP.Route.Case where Call: Copyable, Focus: ~Copyable {
 
-    public init<Inner: Coder.`Protocol`>(
-        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
-        _ fold: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Fold,
-        content: Inner
-    )
-    where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
-        Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
-        Inner.Buffer == HTTP.Route.Request,
-        Inner.Failure == HTTP.Route.Error
-    {
-        self.init(operations: Operations.self, prism, fold, content: .init(content))
-    }
-
-    public init<Inner: Coder.`Protocol`>(
-        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
-        _ fold: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Fold,
-        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
-    )
-    where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
-        Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
-        Inner.Buffer == HTTP.Route.Request,
-        Inner.Failure == HTTP.Route.Error
-    {
-        self.init(prism, fold, content: content())
-    }
-
-    public init<Inner: Coder.`Protocol`>(
-        _ prism: Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Prism,
-        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
-    )
-    where
-        Call: Copyable,
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
-        Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
-        Inner.Buffer == HTTP.Route.Request,
-        Inner.Failure == HTTP.Route.Error
-    {
-        self.init(prism, .init(prism), content: content)
+    public init(
+        _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+        @Parser.Builder<HTTP.Route.Request> content: () -> Content
+    ) {
+        self.init(prism, .init(prism), content: content())
     }
 }
 
-extension HTTP.Route.Case
-where
-    Call: Operation.Coproduct & ~Copyable,
-    Focus: ~Copyable,
-    Operations: ~Copyable & ~Escapable
-{
+extension HTTP.Route.Case where Call: Operation.Coproduct & ~Copyable, Focus: ~Copyable {
 
     public init(
         _ case: Optic<Call, Call, Focus, Focus>.Case,
         @Parser.Builder<HTTP.Route.Request> content: () -> Content
-    ) where Operations == Focus {
+    ) {
         self.init(`case`.prism, `case`.fold, content: content())
     }
 
     public init(
         _ keyPath: KeyPath<Call.Cases, Optic<Call, Call, Focus, Focus>.Case>,
         @Parser.Builder<HTTP.Route.Request> content: () -> Content
-    ) where Operations == Focus {
+    ) {
         self.init(Call.cases[keyPath: keyPath], content: content)
     }
 }
 
-extension HTTP.Route.Case
-where
-    Call: Operation.Coproduct & ~Copyable,
-    Focus: ~Copyable,
-    Operations: Operation.Symbol,
-    Operations.Input: ~Copyable & Escapable,
-    Focus == Operation.Application<Operations>
-{
+extension HTTP.Route.Case where Call: ~Copyable, Focus: ~Copyable {
 
-    public init<Inner: Coder.`Protocol`>(
-        _ case: Optic<Call, Call, Focus, Focus>.Case,
+    public init<Index: Operation.Symbol, Inner: Coding>(
+        _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+        _ fold: Optic<Call, Call, Focus, Focus>.Fold,
         content: Inner
     )
     where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
         Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
+        self.init(prism, fold, content: .init(content))
+    }
+
+    public init<Index: Operation.Symbol, Inner: Coding>(
+        _ prism: Optic<Call, Call, Focus, Focus>.Prism,
+        _ fold: Optic<Call, Call, Focus, Focus>.Fold,
+        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
+    )
+    where
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
+        Inner.Input == HTTP.Route.Request,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
+        Inner.Buffer == HTTP.Route.Request,
+        Inner.Failure == HTTP.Route.Error
+    {
+        self.init(prism, fold, content: content())
+    }
+}
+
+extension HTTP.Route.Case where Call: Operation.Coproduct & ~Copyable, Focus: ~Copyable {
+
+    public init<Index: Operation.Symbol, Inner: Coding>(
+        _ keyPath: KeyPath<Call.Cases, Optic<Call, Call, Focus, Focus>.Case>,
+        content: Inner
+    )
+    where
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
+        Inner.Input == HTTP.Route.Request,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
+        Inner.Buffer == HTTP.Route.Request,
+        Inner.Failure == HTTP.Route.Error
+    {
+        let `case` = Call.cases[keyPath: keyPath]
         self.init(`case`.prism, `case`.fold, content: content)
     }
 
-    public init<Inner: Coder.`Protocol`>(
-        _ case: Optic<Call, Call, Focus, Focus>.Case,
-        @Parser.Builder<HTTP.Route.Request> content: () -> Inner
-    )
-    where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
-        Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
-        Inner.Buffer == HTTP.Route.Request,
-        Inner.Failure == HTTP.Route.Error
-    {
-        self.init(`case`, content: content())
-    }
-
-    public init<Inner: Coder.`Protocol`>(
-        _ keyPath: KeyPath<Call.Cases, Optic<Call, Call, Focus, Focus>.Case>,
-        content: Inner
-    )
-    where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
-        Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
-        Inner.Buffer == HTTP.Route.Request,
-        Inner.Failure == HTTP.Route.Error
-    {
-        self.init(Call.cases[keyPath: keyPath], content: content)
-    }
-
-    public init<Inner: Coder.`Protocol`>(
+    public init<Index: Operation.Symbol, Inner: Coding>(
         _ keyPath: KeyPath<Call.Cases, Optic<Call, Call, Focus, Focus>.Case>,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
         Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
-        self.init(Call.cases[keyPath: keyPath], content: content())
+        self.init(keyPath, content: content())
     }
-}
 
-extension HTTP.Route.Case
-where
-    Call: Operation.Coproduct & ~Copyable,
-    Focus: ~Copyable,
-    Operations: Operation.Member,
-    Operations.Input: ~Copyable & Escapable,
-    Operations.Coproduct == Call,
-    Operations.Case == Optic<Call, Call, Operation.Application<Operations>, Operation.Application<Operations>>.Case,
-    Focus == Operation.Application<Operations>
-{
-
-    public init<Inner: Coder.`Protocol`>(
-        _: Operations.Type,
+    public init<Index: Operation.Member, Inner: Coding>(
+        _: Index.Type,
         content: Inner
     )
     where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
+        Index.Coproduct == Call,
+        Index.Case == Optic<Call, Call, Focus, Focus>.Case,
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
         Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
-        self.init(Call.cases[keyPath: Operations.keyPath], content: content)
+        self.init(Index.keyPath, content: content)
     }
 
-    public init<Inner: Coder.`Protocol`>(
-        _: Operations.Type,
+    public init<Index: Operation.Member, Inner: Coding>(
+        _: Index.Type,
         @Parser.Builder<HTTP.Route.Request> content: () -> Inner
     )
     where
-        Content == Operation.Application<Operations>.Coder<Inner>,
-        Inner.Output: ~Copyable & Escapable,
+        Index.Coproduct == Call,
+        Index.Case == Optic<Call, Call, Focus, Focus>.Case,
+        Focus == Operation.Application<Index>,
+        Index.Input: ~Copyable & Escapable,
+        Content == Operation.Application<Index>.Coder<Inner>,
         Inner.Input == HTTP.Route.Request,
-        Inner.Output == Operations.Input,
+        Inner.Output == Index.Input,
+        Inner.Output: ~Copyable & Escapable,
         Inner.Buffer == HTTP.Route.Request,
         Inner.Failure == HTTP.Route.Error
     {
-        self.init(Call.cases[keyPath: Operations.keyPath], content: content())
+        self.init(Index.keyPath, content: content())
     }
 }

@@ -1,5 +1,5 @@
 public import HTTP
-import Parser
+public import Parser
 public import RFC_9110
 
 extension HTTP {
@@ -7,16 +7,13 @@ extension HTTP {
     public static func route<Domain: HTTP.Routable>(
         _: Domain.Type,
         _ request: HTTP.Route.Request
-    ) throws(HTTP.Route.Error) -> Domain.Call
-    where
-        Domain.Call: ~Copyable,
-        Domain.Call.Operations: ~Copyable & ~Escapable
-    {
+    ) throws(HTTP.Route.Error) -> Domain.Router.Output
+    where Domain.Router.Output: ~Copyable {
         var input = request
-        let call = try Domain.route.parse(&input)
+        let route = try Domain.router.parse(&input)
         guard input.content == nil else {
             throw .malformed
         }
-        return call
+        return route
     }
 }

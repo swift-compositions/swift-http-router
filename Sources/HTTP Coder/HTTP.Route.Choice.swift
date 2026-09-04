@@ -1,32 +1,30 @@
-import Coder
-public import Either
+public import Coder
 public import HTTP
-public import RFC_9110
 public import Parser
-import Serializer
+public import RFC_9110
+public import Serializer
 
 extension HTTP.Route {
 
-    public struct Choice<First: HTTP.Route.`Protocol`, Second: HTTP.Route.`Protocol`>: HTTP.Route.`Protocol`
+    public struct Choice<First: Coding, Second: Coding>: Coding
     where
-        First.Message == Second.Message,
-        First.Output == Second.Output,
+        First.Input == HTTP.Route.Request,
         First.Output: ~Copyable,
+        First.Buffer == HTTP.Route.Request,
+        First.Failure == HTTP.Route.Error,
+        Second.Input == HTTP.Route.Request,
+        Second.Output == First.Output,
         Second.Output: ~Copyable,
-        First.Operations: ~Copyable & ~Escapable,
-        Second.Operations: ~Copyable & ~Escapable
+        Second.Buffer == HTTP.Route.Request,
+        Second.Failure == HTTP.Route.Error
     {
-        public typealias Message = First.Message
-
-        public typealias Input = First.Message
+        public typealias Input = HTTP.Route.Request
 
         public typealias Output = First.Output
 
-        public typealias Buffer = First.Message
+        public typealias Buffer = HTTP.Route.Request
 
         public typealias Failure = HTTP.Route.Error
-
-        public typealias Operations = Either<First.Operations, Second.Operations>
 
         public let first: First
 

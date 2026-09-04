@@ -9,10 +9,4 @@ extension HTTP {
         HTTP.Route.Response,
         Failure
     >
-
-    public typealias Responder<Failure: Swift.Error> = Client::Client<
-        HTTP.Route.Request,
-        HTTP.Route.Response,
-        Failure
-    >
 }

@@ -7,9 +7,9 @@ import HTTP
 import HTTP_Coder
 import Operation
 import Optic
-import Optic_Coder
 import Parser
 import Parser_Skip
+import Prism_Derivation
 import RFC_3986
 import RFC_9110
 import Serializer
@@ -19,56 +19,85 @@ func bytes(_ text: String) -> [Byte] {
     text.utf8.map(Byte.init(bitPattern:))
 }
 
-struct Digit: Coding {
+struct Word: Equatable, Coder.Codable {
+
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    static var coder: some Coding<ArraySlice<Byte>, Self, [Byte], HTTP.Message.Content.Error> {
+        HTTP.Message.Content.Text().map(to: { Self($0) }, from: { $0.text })
+    }
+}
+
+struct Numeral: Equatable, Coder.Codable {
+
+    let value: Int
+
+    init(_ value: Int) {
+        self.value = value
+    }
 
     enum Error: Swift.Error, Equatable {
         case notADigit
     }
 
-    typealias Input = ArraySlice<Byte>
-    typealias Output = Int
-    typealias Buffer = [Byte]
-    typealias Failure = Error
+    struct Coder: Coding {
 
-    func parse(_ input: inout ArraySlice<Byte>) throws(Error) -> Int {
-        guard let byte = input.next(), (0x30...0x39).contains(byte.bitPattern) else {
-            throw .notADigit
+        typealias Input = ArraySlice<Byte>
+        typealias Output = Numeral
+        typealias Buffer = [Byte]
+        typealias Failure = Numeral.Error
+
+        func parse(_ input: inout ArraySlice<Byte>) throws(Numeral.Error) -> Numeral {
+            guard let byte = input.next(), (0x30...0x39).contains(byte.bitPattern) else {
+                throw .notADigit
+            }
+            return Numeral(Int(byte.bitPattern - 0x30))
         }
-        return Int(byte.bitPattern - 0x30)
+
+        func serialize(_ output: Numeral, into buffer: inout [Byte]) throws(Numeral.Error) {
+            guard (0...9).contains(output.value) else {
+                throw .notADigit
+            }
+            buffer.append(Byte(bitPattern: UInt8(0x30 + output.value)))
+        }
     }
 
-    func serialize(_ output: Int, into buffer: inout [Byte]) throws(Error) {
-        guard (0...9).contains(output) else {
-            throw .notADigit
-        }
-        buffer.append(Byte(bitPattern: UInt8(0x30 + output)))
+    static var coder: Coder { .init() }
+}
+
+enum Refusal: Swift.Error, Equatable, Coder.Codable {
+
+    case refused
+
+    static var coder: some Coding<ArraySlice<Byte>, Self, [Byte], HTTP.Message.Content.Error> {
+        HTTP.Message.Content.Text().map(to: { _ in Refusal.refused }, from: { _ in "refused" })
     }
 }
 
 enum Fixture {
-    enum Refusal: Swift.Error, Equatable {
-        case refused
-    }
-
     @Signature
     protocol `Protocol` {
-        func echo(_ text: String) async -> String
-        func shout(_ text: String) async throws(Refusal) -> String
+        func echo(_ word: Word) async -> Word
+        func shout(_ word: Word) async throws(Refusal) -> Word
     }
 }
 
 extension Fixture: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Echo.self) {
+    static var router: some HTTP.Routing<Call> {
+        HTTP.Route.Case(\.echo) {
             .post
             HTTP.Target.resource(.init(unchecked: "/echo"))
-            HTTP.Content(HTTP.Message.Content.Text())
+            HTTP.Content(Word.coder)
         }
-        HTTP.Route.Case(Shout.self) {
+        HTTP.Route.Case(\.shout) {
             .post
             HTTP.Target.resource(.init(unchecked: "/shout"))
-            HTTP.Content(HTTP.Message.Content.Text())
+            HTTP.Content(Word.coder)
         }
     }
 }
@@ -76,37 +105,17 @@ extension Fixture: HTTP.Routable {
 enum Single {
     @Signature
     protocol `Protocol` {
-        func respond(_ digit: Int) async throws(Fixture.Refusal) -> String
+        func respond(_ digit: Numeral) async throws(Refusal) -> Word
     }
 }
 
 extension Single: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
+    static var router: some HTTP.Routing<Call> {
         HTTP.Route.Case(Respond.self) {
             .post
             HTTP.Target.resource(.init(unchecked: "/respond"))
-            HTTP.Content(Digit())
-        }
-    }
-}
-
-extension Single.Respond: HTTP.Respondable {
-
-    static var response: some HTTP.Replying<Swift.Result<String, Fixture.Refusal>> {
-        Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.success, absent: .mismatch) {
-            HTTP.Status.ok {
-                HTTP.Content(HTTP.Message.Content.Text())
-            }
-        }
-        Coder.Case(Swift.Result<String, Fixture.Refusal>.prisms.failure, absent: .mismatch) {
-            .badRequest
-            HTTP.Content(
-                HTTP.Message.Content.Text().map(
-                    to: { _ in Fixture.Refusal.refused },
-                    from: { _ in "refused" }
-                )
-            )
+            HTTP.Content(Numeral.coder)
         }
     }
 }
@@ -114,23 +123,23 @@ extension Single.Respond: HTTP.Respondable {
 enum Committed {
     @Signature
     protocol `Protocol` {
-        func digit(_ value: Int) async -> Int
-        func text(_ value: String) async -> String
+        func digit(_ value: Numeral) async -> Numeral
+        func text(_ value: Word) async -> Word
     }
 }
 
 extension Committed: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Digit.self) {
+    static var router: some HTTP.Routing<Call> {
+        HTTP.Route.Case(\.digit) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
-            HTTP.Content(HTTP_Coder_Tests.Digit())
+            HTTP.Content(Numeral.coder)
         }
-        HTTP.Route.Case(Text.self) {
+        HTTP.Route.Case(\.text) {
             .post
             HTTP.Target.resource(.init(unchecked: "/same"))
-            HTTP.Content(HTTP.Message.Content.Text())
+            HTTP.Content(Word.coder)
         }
     }
 }
@@ -155,16 +164,16 @@ extension Owned.Token {
         typealias Failure = HTTP.Route.Error
 
         func parse(_ input: inout ArraySlice<Byte>) throws(HTTP.Route.Error) -> Owned.Token {
-            do throws(Digit.Error) {
-                return .init(value: try Digit().parse(&input))
+            do throws(Numeral.Error) {
+                return .init(value: try Numeral.coder.parse(&input).value)
             } catch {
                 throw .malformed
             }
         }
 
         func serialize(_ output: borrowing Owned.Token, into buffer: inout [Byte]) throws(HTTP.Route.Error) {
-            do throws(Digit.Error) {
-                try Digit().serialize(output.value, into: &buffer)
+            do throws(Numeral.Error) {
+                try Numeral.coder.serialize(Numeral(output.value), into: &buffer)
             } catch {
                 throw .unprintable
             }
@@ -176,7 +185,7 @@ extension Owned.Token {
 
 extension Owned: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
+    static var router: some HTTP.Routing<Call> {
         HTTP.Route.Case(
             Consume.self,
             content: Parser.Skip(
@@ -207,12 +216,12 @@ enum Linear {
 
 extension Linear: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
+    static var router: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.owned) {
-            Owned.route
+            Owned.router
         }
         HTTP.Route.Case(\.single) {
-            Single.route
+            Single.router
         }
     }
 }
@@ -220,17 +229,17 @@ extension Linear: HTTP.Routable {
 enum Leaf {
     @Signature
     protocol `Protocol` {
-        func op(_ text: String) async -> String
+        func op(_ word: Word) async -> Word
     }
 }
 
 extension Leaf: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Op.self) {
+    static var router: some HTTP.Routing<Call> {
+        HTTP.Route.Case(\.op) {
             HTTP.Method.put
             HTTP.Target.resource(.init(unchecked: "/leaf"))
-            HTTP.Content(HTTP.Message.Content.Text())
+            HTTP.Content(Word.coder)
         }
     }
 }
@@ -246,9 +255,9 @@ enum Middle {
 
 extension Middle: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
+    static var router: some HTTP.Routing<Call> {
         HTTP.Route.Case(\.leaf) {
-            Leaf.route
+            Leaf.router
         }
     }
 }
@@ -266,13 +275,13 @@ enum Root {
 
 extension Root: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(Ping.self) {
+    static var router: some HTTP.Routing<Call> {
+        HTTP.Route.Case(\.ping) {
             HTTP.Method.get
             HTTP.Target.resource(.init(unchecked: "/ping"))
         }
         HTTP.Route.Case(\.middle) {
-            Middle.route
+            Middle.router
         }
     }
 }
@@ -280,74 +289,62 @@ extension Root: HTTP.Routable {
 enum Wide {
     @Signature
     protocol `Protocol` {
-        func c1(_ text: String) async -> String
-        func c2(_ text: String) async -> String
-        func c3(_ text: String) async -> String
-        func c4(_ text: String) async -> String
-        func c5(_ text: String) async -> String
-        func c6(_ text: String) async -> String
-        func c7(_ text: String) async -> String
-        func c8(_ text: String) async -> String
-        func c9(_ text: String) async -> String
-        func c10(_ text: String) async -> String
-        func c11(_ text: String) async -> String
-        func c12(_ text: String) async -> String
-        func c13(_ text: String) async -> String
-        func c14(_ text: String) async -> String
-        func c15(_ text: String) async -> String
-        func c16(_ text: String) async -> String
+        func c1(_ word: Word) async -> Word
+        func c2(_ word: Word) async -> Word
+        func c3(_ word: Word) async -> Word
+        func c4(_ word: Word) async -> Word
+        func c5(_ word: Word) async -> Word
+        func c6(_ word: Word) async -> Word
+        func c7(_ word: Word) async -> Word
+        func c8(_ word: Word) async -> Word
+        func c9(_ word: Word) async -> Word
+        func c10(_ word: Word) async -> Word
+        func c11(_ word: Word) async -> Word
+        func c12(_ word: Word) async -> Word
+        func c13(_ word: Word) async -> Word
+        func c14(_ word: Word) async -> Word
+        func c15(_ word: Word) async -> Word
+        func c16(_ word: Word) async -> Word
     }
 }
 
 extension Wide: HTTP.Routable {
 
-    static var route: some HTTP.Routing<Call> {
-        HTTP.Route.Case(C1.self) { .post; HTTP.Target.resource(.init(unchecked: "/c1")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C2.self) { .post; HTTP.Target.resource(.init(unchecked: "/c2")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C3.self) { .post; HTTP.Target.resource(.init(unchecked: "/c3")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C4.self) { .post; HTTP.Target.resource(.init(unchecked: "/c4")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C5.self) { .post; HTTP.Target.resource(.init(unchecked: "/c5")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C6.self) { .post; HTTP.Target.resource(.init(unchecked: "/c6")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C7.self) { .post; HTTP.Target.resource(.init(unchecked: "/c7")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C8.self) { .post; HTTP.Target.resource(.init(unchecked: "/c8")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C9.self) { .post; HTTP.Target.resource(.init(unchecked: "/c9")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C10.self) { .post; HTTP.Target.resource(.init(unchecked: "/c10")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C11.self) { .post; HTTP.Target.resource(.init(unchecked: "/c11")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C12.self) { .post; HTTP.Target.resource(.init(unchecked: "/c12")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C13.self) { .post; HTTP.Target.resource(.init(unchecked: "/c13")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C14.self) { .post; HTTP.Target.resource(.init(unchecked: "/c14")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C15.self) { .post; HTTP.Target.resource(.init(unchecked: "/c15")); HTTP.Content(HTTP.Message.Content.Text()) }
-        HTTP.Route.Case(C16.self) { .post; HTTP.Target.resource(.init(unchecked: "/c16")); HTTP.Content(HTTP.Message.Content.Text()) }
+    static var router: some HTTP.Routing<Call> {
+        HTTP.Route.Case(\.c1) { .post; HTTP.Target.resource(.init(unchecked: "/c1")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c2) { .post; HTTP.Target.resource(.init(unchecked: "/c2")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c3) { .post; HTTP.Target.resource(.init(unchecked: "/c3")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c4) { .post; HTTP.Target.resource(.init(unchecked: "/c4")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c5) { .post; HTTP.Target.resource(.init(unchecked: "/c5")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c6) { .post; HTTP.Target.resource(.init(unchecked: "/c6")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c7) { .post; HTTP.Target.resource(.init(unchecked: "/c7")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c8) { .post; HTTP.Target.resource(.init(unchecked: "/c8")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c9) { .post; HTTP.Target.resource(.init(unchecked: "/c9")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c10) { .post; HTTP.Target.resource(.init(unchecked: "/c10")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c11) { .post; HTTP.Target.resource(.init(unchecked: "/c11")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c12) { .post; HTTP.Target.resource(.init(unchecked: "/c12")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c13) { .post; HTTP.Target.resource(.init(unchecked: "/c13")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c14) { .post; HTTP.Target.resource(.init(unchecked: "/c14")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c15) { .post; HTTP.Target.resource(.init(unchecked: "/c15")); HTTP.Content(Word.coder) }
+        HTTP.Route.Case(\.c16) { .post; HTTP.Target.resource(.init(unchecked: "/c16")); HTTP.Content(Word.coder) }
     }
 }
 
-enum Sixteen: Equatable {
-    case c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16
+@Prisms
+enum Site {
+    case home
+    case api(Fixture.Call)
 }
 
-extension Sixteen {
+extension Site: HTTP.Routable {
 
-    static func row(_ value: Self) -> Optic<Self, Self, Void, Void>.Prism {
-        .fixed(value)
-    }
-
-    @HTTP.Route.Builder<Sixteen>
-    static var rows: some HTTP.Replying<Sixteen> {
-        Coder.Case(row(.c1), absent: .mismatch) { HTTP.Status(201) }
-        Coder.Case(row(.c2), absent: .mismatch) { HTTP.Status(202) }
-        Coder.Case(row(.c3), absent: .mismatch) { HTTP.Status(203) }
-        Coder.Case(row(.c4), absent: .mismatch) { HTTP.Status(204) }
-        Coder.Case(row(.c5), absent: .mismatch) { HTTP.Status(205) }
-        Coder.Case(row(.c6), absent: .mismatch) { HTTP.Status(206) }
-        Coder.Case(row(.c7), absent: .mismatch) { HTTP.Status(207) }
-        Coder.Case(row(.c8), absent: .mismatch) { HTTP.Status(208) }
-        Coder.Case(row(.c9), absent: .mismatch) { HTTP.Status(209) }
-        Coder.Case(row(.c10), absent: .mismatch) { HTTP.Status(210) }
-        Coder.Case(row(.c11), absent: .mismatch) { HTTP.Status(211) }
-        Coder.Case(row(.c12), absent: .mismatch) { HTTP.Status(212) }
-        Coder.Case(row(.c13), absent: .mismatch) { HTTP.Status(213) }
-        Coder.Case(row(.c14), absent: .mismatch) { HTTP.Status(214) }
-        Coder.Case(row(.c15), absent: .mismatch) { HTTP.Status(215) }
-        Coder.Case(row(.c16), absent: .mismatch) { HTTP.Status(216) }
+    static var router: some HTTP.Routing<Self> {
+        HTTP.Route.Case(prisms.home) {
+            .get
+            HTTP.Target.resource(.init(unchecked: "/"))
+        }
+        HTTP.Route.Case(prisms.api) {
+            Fixture.router
+        }
     }
 }

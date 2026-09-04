@@ -12,10 +12,3 @@ extension Parser.Builder where Input == HTTP.Route.Request {
         target
     }
 }
-
-extension Parser.Builder where Input == HTTP.Route.Response {
-
-    public static func buildExpression(_ status: HTTP.Status) -> HTTP.Status {
-        status
-    }
-}

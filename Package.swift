@@ -68,6 +68,10 @@ let package = Package(
             url: "https://github.com/swift-molecules/swift-optic-coder.git",
             branch: "main"
         ),
+        .package(
+            url: "https://github.com/swift-molecules/swift-prism-derivation.git",
+            branch: "main"
+        ),
     ],
     targets: [
         .target(
@@ -108,6 +112,7 @@ let package = Package(
                 .product(name: "Parser", package: "swift-parser"),
                 .product(name: "Parser Skip", package: "swift-parser"),
                 .product(name: "Serializer", package: "swift-serializer"),
+                .product(name: "Prism Derivation", package: "swift-prism-derivation"),
                 .product(name: "Signature Derivation", package: "swift-signature-derivation"),
             ]
         ),

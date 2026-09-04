@@ -138,7 +138,7 @@ extension Committed: HTTP.Routable {
 }
 
 enum Owned {
-    struct Token {
+    struct Token: ~Copyable {
         let value: Int
     }
 

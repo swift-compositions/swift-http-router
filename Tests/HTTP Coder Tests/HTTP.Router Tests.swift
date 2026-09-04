@@ -138,9 +138,14 @@ struct `HTTP.Router Tests` {
 
     @Test
     func `a noncopyable root routes its calls from a borrow`() throws {
-        let consume = Linear.Call.owned(.consume(Owned.Token(value: 4)))
-        let consumeRequest = try HTTP.request(Linear.self, for: consume)
-        let consumeRequestAgain = try HTTP.request(Linear.self, for: consume)
+        let consumeRequest = try HTTP.request(
+            Linear.self,
+            for: Linear.Call.owned(.consume(Owned.Token(value: 4)))
+        )
+        let consumeRequestAgain = try HTTP.request(
+            Linear.self,
+            for: Linear.Call.owned(.consume(Owned.Token(value: 4)))
+        )
         #expect(consumeRequest.target == HTTP.Target(unchecked: "/consume"))
         #expect(consumeRequest.content == bytes("4"))
         #expect(consumeRequest == consumeRequestAgain)

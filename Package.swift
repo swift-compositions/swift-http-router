@@ -92,7 +92,6 @@ let package = Package(
                 .product(name: "Optic", package: "swift-optic"),
                 .product(name: "Optic Coder", package: "swift-optic-coder"),
                 .product(name: "Parser", package: "swift-parser"),
-                .product(name: "Parser Skip", package: "swift-parser"),
                 .product(name: "Prism Derivation", package: "swift-prism-derivation"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),

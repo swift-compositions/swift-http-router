@@ -22,7 +22,6 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-molecules/swift-skip-parser.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-byte.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-checkpoint.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-coder.git", branch: "main"),
@@ -79,11 +78,10 @@ let package = Package(
         .testTarget(
             name: "HTTP Router Tests",
             dependencies: [
-                .product(name: "Skip Parser", package: "swift-skip-parser"),
+                .product(name: "Parser", package: "swift-parser"),
                 "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Coder", package: "swift-byte-coder"),
-                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Checkpoint Coder", package: "swift-checkpoint-coder"),
                 .product(name: "Coder", package: "swift-coder"),
@@ -93,7 +91,6 @@ let package = Package(
                 .product(name: "Operation Coder", package: "swift-operation-coder"),
                 .product(name: "Optic", package: "swift-optic"),
                 .product(name: "Optic Coder", package: "swift-optic-coder"),
-                .product(name: "Parser", package: "swift-parser"),
                 .product(name: "Prism Derivation", package: "swift-prism-derivation"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
@@ -102,7 +99,6 @@ let package = Package(
                 .product(name: "String Coder", package: "swift-string-coder"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "Tagged Coder", package: "swift-tagged-coder"),
-                .product(name: "Tagged", package: "swift-tagged"),
             ]
         ),
         .testTarget(
@@ -112,7 +108,6 @@ let package = Package(
                 "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Coder", package: "swift-byte-coder"),
-                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
                 .product(name: "HTTP", package: "swift-http"),
@@ -122,7 +117,6 @@ let package = Package(
                 .product(name: "String Coder", package: "swift-string-coder"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "Tagged Coder", package: "swift-tagged-coder"),
-                .product(name: "Tagged", package: "swift-tagged"),
             ]
         ),
     ],

@@ -1,6 +1,7 @@
+import Skip_Parser
 import Byte
 import Byte_Coder
-import Byte_Standard_Library_Integration
+import Byte
 import Checkpoint
 import Checkpoint_Coder
 import Coder
@@ -20,7 +21,7 @@ import Signature_Derivation
 import String_Coder
 import Tagged
 import Tagged_Coder
-import Tagged_Standard_Library_Integration
+import Tagged
 
 func bytes(_ text: String) -> [Byte] {
     text.utf8.map(Byte.init(bitPattern:))
@@ -167,8 +168,8 @@ extension Owned: HTTP.Routable {
         Call.Router(
             absent: .mismatch,
             consume: HTTP.route {
-                Parser.Skip(
-                    Parser.Skip(
+                Skip::Skip.Parser(
+                    Skip::Skip.Parser(
                         HTTP.Content<HTTP.Router.Request, Owned.Token.Coder>(Owned.Token.coder),
                         HTTP.Method.post,
                         { $0 },

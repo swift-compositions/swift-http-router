@@ -22,7 +22,7 @@ extension HTTP {
     }
 
     public static func route<Index: Operation.Symbol, Body: Coding>(
-        @Parser.Builder<HTTP.Router.Request> _ body: () -> Body
+        @Builder<HTTP.Router.Request> _ body: () -> Body
     ) -> Operation.Application<Index>.Coder<Body>
     where
         Index.Input: ~Copyable & Escapable,

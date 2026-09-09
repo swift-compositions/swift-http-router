@@ -3,7 +3,7 @@ public import Parser
 public import RFC_3986
 public import RFC_9110
 
-extension Parser.Builder where Input == HTTP.Router.Request {
+extension Builder where Input == HTTP.Router.Request {
 
     public static func buildExpression(_ method: HTTP.Method) -> HTTP.Method {
         method

@@ -22,6 +22,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/swift-molecules/swift-skip-parser.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-byte.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-checkpoint.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-coder.git", branch: "main"),
@@ -78,10 +79,11 @@ let package = Package(
         .testTarget(
             name: "HTTP Router Tests",
             dependencies: [
+                .product(name: "Skip Parser", package: "swift-skip-parser"),
                 "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Coder", package: "swift-byte-coder"),
-                .product(name: "Byte Standard Library Integration", package: "swift-byte"),
+                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Checkpoint Coder", package: "swift-checkpoint-coder"),
                 .product(name: "Coder", package: "swift-coder"),
@@ -100,7 +102,7 @@ let package = Package(
                 .product(name: "String Coder", package: "swift-string-coder"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "Tagged Coder", package: "swift-tagged-coder"),
-                .product(name: "Tagged Standard Library Integration", package: "swift-tagged"),
+                .product(name: "Tagged", package: "swift-tagged"),
             ]
         ),
         .testTarget(
@@ -110,7 +112,7 @@ let package = Package(
                 "HTTP Router",
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Byte Coder", package: "swift-byte-coder"),
-                .product(name: "Byte Standard Library Integration", package: "swift-byte"),
+                .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
                 .product(name: "HTTP", package: "swift-http"),
@@ -120,7 +122,7 @@ let package = Package(
                 .product(name: "String Coder", package: "swift-string-coder"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "Tagged Coder", package: "swift-tagged-coder"),
-                .product(name: "Tagged Standard Library Integration", package: "swift-tagged"),
+                .product(name: "Tagged", package: "swift-tagged"),
             ]
         ),
     ],

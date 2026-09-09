@@ -1,6 +1,6 @@
 import Byte
 import Byte_Coder
-import Byte_Standard_Library_Integration
+import Byte
 import Checkpoint_Coder
 import Coder
 import Either
@@ -17,7 +17,7 @@ import Serializer
 import String_Coder
 import Tagged
 import Tagged_Coder
-import Tagged_Standard_Library_Integration
+import Tagged
 import Testing
 
 private struct Unprintable: Coding {

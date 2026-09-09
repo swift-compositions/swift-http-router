@@ -30,7 +30,7 @@ extension HTTP.Reply {
     }
 }
 
-extension HTTP.Reply.Pair: Parser.`Protocol` {
+extension HTTP.Reply.Pair: Parsing {
 
     public typealias Input = HTTP.Router.Response
 

@@ -13,7 +13,7 @@ extension HTTP.Reply {
     }
 }
 
-extension HTTP.Reply.Empty: Parser.`Protocol` {
+extension HTTP.Reply.Empty: Parsing {
 
     public typealias Input = HTTP.Router.Response
 

@@ -31,7 +31,7 @@ extension HTTP.Content where Value.Output: ~Copyable {
     }
 }
 
-extension HTTP.Content: Parser.`Protocol`
+extension HTTP.Content: Parsing
 where Value.Output: ~Copyable {
 
     public typealias Input = Message

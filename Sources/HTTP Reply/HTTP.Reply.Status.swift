@@ -24,7 +24,7 @@ extension HTTP.Reply {
     }
 }
 
-extension HTTP.Reply.Status: Parser.`Protocol` {
+extension HTTP.Reply.Status: Parsing {
 
     public typealias Input = HTTP.Router.Response
 

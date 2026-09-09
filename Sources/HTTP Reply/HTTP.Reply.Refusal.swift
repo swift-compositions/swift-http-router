@@ -22,7 +22,7 @@ extension HTTP.Reply {
     }
 }
 
-extension HTTP.Reply.Refusal: Parser.`Protocol` {
+extension HTTP.Reply.Refusal: Parsing {
 
     public typealias Input = HTTP.Router.Response
 

@@ -1,22 +1,14 @@
 import Byte
-import Byte_Coder
-import Byte
-import Checkpoint_Coder
 import Coder
 import Either
 import HTTP
 import HTTP_Router
 import Operation
-import Operation_Coder
 import Optic
-import Optic_Coder
 import Parser
 import RFC_3986
 import RFC_9110
 import Serializer
-import String_Coder
-import Tagged
-import Tagged_Coder
 import Tagged
 import Testing
 
@@ -67,7 +59,7 @@ struct `HTTP.Router Tests` {
 
     @Test
     func `the content bridge round trips and commits on trailing or missing bytes`() throws {
-        let content = HTTP.Content<HTTP.Router.Request, Limit.Coder>(Limit.self)
+        let content = HTTP.Content<HTTP.Router.Request, Swift.String.Coder.Lossless<Limit>>(Swift.String.Coder.Lossless<Limit>())
         var request = HTTP.Router.Request.blank
         try content.serialize(Limit(7), into: &request)
         #expect(request.content == bytes("7"))
@@ -107,7 +99,7 @@ struct `HTTP.Router Tests` {
             Issue.record("expected the count branch")
             return
         }
-        #expect(application.input == Limit(4))
+        #expect(application.input.limit == Limit(4))
 
         var unknown = HTTP.Router.Request(method: .get, target: HTTP.Target(unchecked: "/same"))
         unknown.content = bytes("4")
@@ -126,7 +118,7 @@ struct `HTTP.Router Tests` {
             Issue.record("expected the echo branch")
             return
         }
-        #expect(application.input == Word("Ada"))
+        #expect(application.input.word == Word("Ada"))
 
         let shout = try HTTP.request(Fixture.self, for: .shout(Word("Ada")))
         #expect(shout.target == HTTP.Target(unchecked: "/shout"))
@@ -134,7 +126,7 @@ struct `HTTP.Router Tests` {
             Issue.record("expected the shout branch")
             return
         }
-        #expect(shouted.input == Word("Ada"))
+        #expect(shouted.input.word == Word("Ada"))
     }
 
     @Test
@@ -154,7 +146,7 @@ struct `HTTP.Router Tests` {
         var value = 0
         let visited = Linear.Call.folds.owned(routedConsume) { owned in
             _ = Owned.Call.folds.consume(owned) { application in
-                value = application.input.value
+                value = application.input.token.value
             }
         }
         #expect(visited)
@@ -166,7 +158,7 @@ struct `HTTP.Router Tests` {
         let routedRespond = try HTTP.route(Linear.self, respondRequest)
         var limit = Limit(0)
         _ = Linear.Call.folds.single(routedRespond) { single in
-            limit = Single.Call.folds.respond.extract(single)?.input ?? Limit(0)
+            limit = Single.Call.folds.respond.extract(single)?.input.limit ?? Limit(0)
         }
         #expect(limit == Limit(4))
     }
@@ -175,7 +167,7 @@ struct `HTTP.Router Tests` {
     func `serializing a call no arm owns is a mismatch`() throws {
         var buffer = HTTP.Router.Request.blank
         #expect(throws: HTTP.Router.Error.mismatch) {
-            try Coder.Case(Linear.Call.cases.single, absent: HTTP.Router.Error.mismatch) { Single.router }
+            try Coder::Case(Linear.Call.cases.single, absent: HTTP.Router.Error.mismatch) { Single.router }
                 .serialize(Linear.Call.owned(.consume(Owned.Token(value: 1))), into: &buffer)
         }
         #expect(buffer == HTTP.Router.Request.blank)
@@ -191,7 +183,7 @@ struct `HTTP.Router Tests` {
             Issue.record("expected the leaf operation")
             return
         }
-        #expect(op.input == Word("deep"))
+        #expect(op.input.word == Word("deep"))
 
         let ping = try HTTP.request(Root.self, for: .ping())
         #expect(ping.method == .get)
@@ -241,6 +233,6 @@ struct `HTTP.Router Tests` {
             Issue.record("expected the echo operation")
             return
         }
-        #expect(application.input == Word("a"))
+        #expect(application.input.word == Word("a"))
     }
 }

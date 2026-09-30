@@ -1,6 +1,4 @@
 import Byte
-import Byte_Coder
-import Byte
 import Coder
 import Either
 import HTTP
@@ -9,10 +7,7 @@ import HTTP_Router
 import Parser
 import RFC_9110
 import Serializer
-import String_Coder
-import Tagged
-import Tagged_Coder
-import Tagged
+public import Tagged
 
 func bytes(_ text: String) -> [Byte] {
     text.utf8.map(Byte.init(bitPattern:))
@@ -26,16 +21,27 @@ enum Size {}
 
 typealias Limit = Tagged<Size, Int>
 
-enum Refusal: Swift.Error, Equatable, Coder.Codable {
-
-    case refused
-
-    static var coder: Coder.Map<Swift.String.Coder, Refusal> {
-        Swift.String.coder.map(to: { _ in Refusal.refused }, from: { _ in "refused" })
+extension Tagged: @retroactive LosslessStringConvertible where Underlying: LosslessStringConvertible {
+    public init?(_ description: String) {
+        guard let underlying = Underlying(description) else { return nil }
+        self.init(underlying)
     }
 }
 
-enum Ineffable: Equatable, Coder.Codable {
+enum Refusal: Swift.Error, Equatable {
+
+    case refused
+
+    struct Coder: Coding {
+        var body: some Coding<ArraySlice<Byte>, Refusal, [Byte], Swift.String.Coder.Error> {
+            return Swift.String.Coder().map(
+                to: { _ in Refusal.refused }, from: { _ in "refused" }
+            )
+        }
+    }
+}
+
+enum Ineffable: Equatable {
 
     case value
 
@@ -51,5 +57,4 @@ enum Ineffable: Equatable, Coder.Codable {
         }
     }
 
-    static var coder: Coder { .init() }
 }

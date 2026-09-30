@@ -28,7 +28,7 @@ extension HTTP.Reply.Empty: Parsing {
     }
 }
 
-extension HTTP.Reply.Empty: Serializer.`Protocol` {
+extension HTTP.Reply.Empty: Serializing {
 
     public typealias Buffer = HTTP.Router.Response
 
@@ -37,4 +37,4 @@ extension HTTP.Reply.Empty: Serializer.`Protocol` {
     }
 }
 
-extension HTTP.Reply.Empty: Coder.`Protocol` {}
+extension HTTP.Reply.Empty: Coding {}

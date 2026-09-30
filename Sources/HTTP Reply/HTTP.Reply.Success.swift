@@ -36,7 +36,7 @@ extension HTTP.Reply.Success: Parsing {
     }
 }
 
-extension HTTP.Reply.Success: Serializer.`Protocol` {
+extension HTTP.Reply.Success: Serializing {
 
     public typealias Buffer = HTTP.Router.Response
 
@@ -54,4 +54,4 @@ extension HTTP.Reply.Success: Serializer.`Protocol` {
     }
 }
 
-extension HTTP.Reply.Success: Coder.`Protocol` {}
+extension HTTP.Reply.Success: Coding {}

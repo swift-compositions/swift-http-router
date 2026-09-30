@@ -40,7 +40,7 @@ extension HTTP.Reply.Status: Parsing {
     }
 }
 
-extension HTTP.Reply.Status: Serializer.`Protocol` {
+extension HTTP.Reply.Status: Serializing {
 
     public typealias Buffer = HTTP.Router.Response
 
@@ -53,4 +53,4 @@ extension HTTP.Reply.Status: Serializer.`Protocol` {
     }
 }
 
-extension HTTP.Reply.Status: Coder.`Protocol` {}
+extension HTTP.Reply.Status: Coding {}

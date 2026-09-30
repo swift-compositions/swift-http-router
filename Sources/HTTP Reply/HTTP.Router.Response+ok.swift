@@ -1,5 +1,4 @@
 public import Byte
-public import Coder
 public import HTTP
 public import HTTP_Router
 public import Parser
@@ -12,41 +11,67 @@ extension HTTP.Message.Response where Content == [Byte] {
         .init(status: .ok)
     }
 
-    public static func ok<Value: Coder.Codable>(_ value: Value) throws(HTTP.Router.Error) -> Self
+    public static func ok<Representation: Serializing & ~Copyable>(
+        _ value: borrowing Representation.Output,
+        using representation: borrowing Representation
+    ) throws(HTTP.Router.Error) -> Self
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Representation.Output: ~Copyable,
+        Representation.Buffer == [Byte]
     {
-        try .init(.ok, value)
+        try .init(.ok, value, using: representation)
     }
 
-    public static func badRequest<Value: Coder.Codable>(_ value: Value) throws(HTTP.Router.Error) -> Self
+    public static func badRequest<Representation: Serializing & ~Copyable>(
+        _ value: borrowing Representation.Output,
+        using representation: borrowing Representation
+    ) throws(HTTP.Router.Error) -> Self
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Representation.Output: ~Copyable,
+        Representation.Buffer == [Byte]
     {
-        try .init(.badRequest, value)
+        try .init(.badRequest, value, using: representation)
     }
 
-    public init<Value: Coder.Codable>(_ status: HTTP.Status, _ value: Value) throws(HTTP.Router.Error)
+    public init<Representation: Serializing & ~Copyable>(
+        _ status: HTTP.Status,
+        _ value: borrowing Representation.Output,
+        using representation: borrowing Representation
+    ) throws(HTTP.Router.Error)
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Representation.Output: ~Copyable,
+        Representation.Buffer == [Byte]
     {
+        var content: [Byte] = []
+        do throws(Representation.Failure) {
+            try representation.serialize(value, into: &content)
+        } catch {
+            throw .unprintable
+        }
         self.init(status: status)
-        try HTTP.Content<Self, Value.Coder>(Value.self).serialize(value, into: &self)
+        self.content = content
     }
 
-    public func decoded<Value: Coder.Codable>(as _: Value.Type) throws(HTTP.Router.Error) -> Value
+    public func decoded<Representation: Parsing & ~Copyable>(
+        using representation: borrowing Representation
+    ) throws(HTTP.Router.Error) -> Representation.Output
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Representation.Input == ArraySlice<Byte>,
+        Representation.Output: ~Copyable
     {
-        var input = self
-        return try HTTP.Content<Self, Value.Coder>(Value.self).parse(&input)
+        guard let content else {
+            throw .malformed
+        }
+        var cursor = content[...]
+        let output: Representation.Output
+        do throws(Representation.Failure) {
+            output = try representation.parse(&cursor)
+        } catch {
+            throw .malformed
+        }
+        guard cursor.isEmpty else {
+            throw .malformed
+        }
+        return output
     }
 }

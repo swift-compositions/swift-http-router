@@ -1,6 +1,4 @@
 import Byte
-import Byte_Coder
-import Byte
 import Coder
 import Either
 import HTTP
@@ -9,9 +7,6 @@ import HTTP_Router
 import Parser
 import RFC_9110
 import Serializer
-import String_Coder
-import Tagged
-import Tagged_Coder
 import Tagged
 import Testing
 
@@ -21,8 +16,8 @@ struct `HTTP.Reply Tests` {
     @Test
     func `a reply pairs a success with a refusal and round trips both`() throws {
         let reply = HTTP.reply {
-            HTTP.ok(Word.self)
-            HTTP.badRequest(Refusal.self)
+            HTTP.ok(Swift.String.Coder.Lossless<Word>())
+            HTTP.badRequest(Refusal.Coder())
         }
 
         var success = HTTP.Router.Response.blank
@@ -52,8 +47,8 @@ struct `HTTP.Reply Tests` {
     @Test
     func `a refusal may lead the reply`() throws {
         let reply = HTTP.reply {
-            HTTP.badRequest(Refusal.self)
-            HTTP.ok(Word.self)
+            HTTP.badRequest(Refusal.Coder())
+            HTTP.ok(Swift.String.Coder.Lossless<Word>())
         }
 
         var response = HTTP.Router.Response.blank
@@ -70,8 +65,8 @@ struct `HTTP.Reply Tests` {
     @Test
     func `a status no arm owns is a mismatch and a malformed body commits`() throws {
         let reply = HTTP.reply {
-            HTTP.ok(Limit.self)
-            HTTP.badRequest(Refusal.self)
+            HTTP.ok(Swift.String.Coder.Lossless<Limit>())
+            HTTP.badRequest(Refusal.Coder())
         }
 
         var unknown = HTTP.Router.Response(status: .internalServerError)
@@ -116,8 +111,8 @@ struct `HTTP.Reply Tests` {
     @Test
     func `success and refusal accept any status`() throws {
         let reply = HTTP.reply {
-            HTTP.success(.created, Limit.self)
-            HTTP.refusal(.conflict, Refusal.self)
+            HTTP.success(.created, Swift.String.Coder.Lossless<Limit>())
+            HTTP.refusal(.conflict, Refusal.Coder())
         }
 
         var created = HTTP.Router.Response.blank
@@ -141,7 +136,7 @@ struct `HTTP.Reply Tests` {
     @Test
     func `an unprintable value cannot be replied`() throws {
         let reply = HTTP.reply {
-            HTTP.ok(Ineffable.self)
+            HTTP.ok(Ineffable.Coder())
         }
 
         var response = HTTP.Router.Response.blank
@@ -152,17 +147,17 @@ struct `HTTP.Reply Tests` {
 
     @Test
     func `responses carry values and refusals and read them back`() throws {
-        let word = try HTTP.Router.Response.ok(Word("hello"))
+        let word = try HTTP.Router.Response.ok(Word("hello"), using: Swift.String.Coder.Lossless<Word>())
         #expect(word.status == .ok)
         #expect(word.content == bytes("hello"))
-        #expect(try word.decoded(as: Word.self) == Word("hello"))
+        #expect(try word.decoded(using: Swift.String.Coder.Lossless<Word>()) == Word("hello"))
 
-        let refusal = try HTTP.Router.Response.badRequest(Refusal.refused)
+        let refusal = try HTTP.Router.Response.badRequest(Refusal.refused, using: Refusal.Coder())
         #expect(refusal.status == .badRequest)
         #expect(refusal.content == bytes("refused"))
-        #expect(try refusal.decoded(as: Refusal.self) == .refused)
+        #expect(try refusal.decoded(using: Refusal.Coder()) == .refused)
 
-        let created = try HTTP.Router.Response(201, Limit(3))
+        let created = try HTTP.Router.Response(201, Limit(3), using: Swift.String.Coder.Lossless<Limit>())
         #expect(created.status == 201)
         #expect(created.content == bytes("3"))
 
@@ -171,13 +166,39 @@ struct `HTTP.Reply Tests` {
         #expect(empty.content == nil)
 
         #expect(throws: HTTP.Router.Error.malformed) {
-            try word.decoded(as: Limit.self)
+            try word.decoded(using: Swift.String.Coder.Lossless<Limit>())
         }
         #expect(throws: HTTP.Router.Error.malformed) {
-            try empty.decoded(as: Word.self)
+            try empty.decoded(using: Swift.String.Coder.Lossless<Word>())
         }
         #expect(throws: HTTP.Router.Error.unprintable) {
-            try HTTP.Router.Response.ok(Ineffable.value)
+            try HTTP.Router.Response.ok(Ineffable.value, using: Ineffable.Coder())
         }
+    }
+
+    @Test
+    func `response conveniences accept independent directions and require full decoding`() throws {
+        let response = try HTTP.Router.Response.ok("ab", using: TextWriter())
+        #expect(response.content == bytes("ab"))
+        #expect(throws: HTTP.Router.Error.malformed) {
+            try response.decoded(using: LeadingByteParser())
+        }
+        #expect(response.content == bytes("ab"))
+
+        let single = try HTTP.Router.Response.ok("a", using: TextWriter())
+        #expect(try single.decoded(using: LeadingByteParser()) == bytes("a")[0])
+    }
+}
+
+private struct TextWriter: Serializing {
+    func serialize(_ output: borrowing String, into buffer: inout [Byte]) {
+        buffer.append(contentsOf: bytes(output))
+    }
+}
+
+private struct LeadingByteParser: Parsing {
+    func parse(_ input: inout ArraySlice<Byte>) throws(HTTP.Router.Error) -> Byte {
+        guard let value = input.popFirst() else { throw .malformed }
+        return value
     }
 }

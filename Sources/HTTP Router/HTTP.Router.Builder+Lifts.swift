@@ -1,9 +1,9 @@
 public import HTTP
-public import Parser
+public import Coder
 public import RFC_3986
 public import RFC_9110
 
-extension Builder where Input == HTTP.Router.Request {
+extension Coder::Builder where Input == HTTP.Router.Request, Buffer == HTTP.Router.Request {
 
     public static func buildExpression(_ method: HTTP.Method) -> HTTP.Method {
         method

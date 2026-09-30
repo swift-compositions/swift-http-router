@@ -4,7 +4,7 @@ public import Parser
 public import RFC_9110
 public import Serializer
 
-extension HTTP.Method: @retroactive Parsing, @retroactive Serializer.`Protocol`, @retroactive Coder.`Protocol` {
+extension HTTP.Method: @retroactive Parsing, @retroactive Serializing, @retroactive Coding {
 
     public typealias Input = HTTP.Router.Request
 

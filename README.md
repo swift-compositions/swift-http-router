@@ -15,7 +15,7 @@ extension Greeting: HTTP.Routable {
             greet: HTTP.route {
                 .post
                 HTTP.Target(unchecked: "/greet")
-                HTTP.Content(Greeting.Name.self)
+                HTTP.Content(Greeting.Name.Coder())
             }
         )
     }
@@ -31,8 +31,8 @@ let call = try HTTP.route(Greeting.self, request)
 
 ```swift
 let reply = HTTP.reply {
-    HTTP.ok(Greeting.Message.self)
-    HTTP.badRequest(Greeting.Error.self)
+    HTTP.ok(Greeting.Message.Coder())
+    HTTP.badRequest(Greeting.Error.Coder())
 }
 
 var response = HTTP.Router.Response.blank
@@ -41,6 +41,21 @@ let outcome = try reply.parse(&response)
 ```
 
 A reply infers bottom-up: `HTTP.Reply.Success` codes `Either<Never, Value>`, `HTTP.Reply.Refusal` codes `Either<Reason, Never>`, and the builder pairs them into `Either<Reason, Value>`.
+
+## Explicit representations
+
+`HTTP.Content` and the bidirectional success/refusal factories take a concrete
+`Coding` value, for example `HTTP.Content(String.Coder())` or
+`HTTP.ok(String.Coder.Lossless<Count>())`. The former type-based overloads and
+model-level `Coder.Codable` adoption have been removed; define or pass the desired
+representation at each boundary.
+
+Response conveniences accept each direction independently:
+`HTTP.Router.Response.ok(value, using: serializer)`,
+`HTTP.Router.Response(status, value, using: serializer)`, and
+`response.decoded(using: parser)`. Serialization creates a fresh body and maps
+failures to `.unprintable`; decoding requires a present, fully consumed body and
+maps failures or trailing input to `.malformed`.
 
 ## Dependencies
 

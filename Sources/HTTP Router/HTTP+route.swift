@@ -1,7 +1,6 @@
 public import Coder
 public import HTTP
 public import Operation
-public import Operation_Coder
 public import Parser
 public import RFC_9110
 public import Serializer
@@ -22,7 +21,7 @@ extension HTTP {
     }
 
     public static func route<Index: Operation.Symbol, Body: Coding>(
-        @Builder<HTTP.Router.Request> _ body: () -> Body
+        @Coder::Builder<HTTP.Router.Request, HTTP.Router.Request> _ body: () -> Body
     ) -> Operation.Application<Index>.Coder<Body>
     where
         Index.Input: ~Copyable & Escapable,

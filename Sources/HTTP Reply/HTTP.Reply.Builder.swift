@@ -1,4 +1,3 @@
-public import Checkpoint_Coder
 public import Coder
 public import Either
 public import HTTP
@@ -71,7 +70,7 @@ extension HTTP.Reply.Builder {
     public static func buildPartialBlock<First: Coding, Second: Coding>(
         accumulated first: First,
         next second: Second
-    ) -> Coder.OneOf.Two<First, Second>
+    ) -> Coder::OneOf.Two<First, Second>
     where
         First.Input == HTTP.Router.Response,
         First.Buffer == HTTP.Router.Response,

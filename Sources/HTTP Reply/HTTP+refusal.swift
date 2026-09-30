@@ -6,81 +6,81 @@ public import RFC_9110
 
 extension HTTP {
 
-    public static func refusal<Reason: Swift.Error & Coder.Codable>(
+    public static func refusal<Reason: Coding>(
         _ status: HTTP.Status,
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        .init(HTTP.Reply.Status(status, HTTP.Content(Reason.self)))
+        .init(HTTP.Reply.Status(status, HTTP.Content(reason)))
     }
 
-    public static func badRequest<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func badRequest<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.badRequest, Reason.self)
+        HTTP.refusal(.badRequest, reason)
     }
 
-    public static func unauthorized<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func unauthorized<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.unauthorized, Reason.self)
+        HTTP.refusal(.unauthorized, reason)
     }
 
-    public static func forbidden<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func forbidden<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.forbidden, Reason.self)
+        HTTP.refusal(.forbidden, reason)
     }
 
-    public static func notFound<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func notFound<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.notFound, Reason.self)
+        HTTP.refusal(.notFound, reason)
     }
 
-    public static func conflict<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func conflict<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.conflict, Reason.self)
+        HTTP.refusal(.conflict, reason)
     }
 
-    public static func unprocessableContent<Reason: Swift.Error & Coder.Codable>(
-        _: Reason.Type
-    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason.Coder>>>
+    public static func unprocessableContent<Reason: Coding>(
+        _ reason: Reason
+    ) -> HTTP.Reply.Refusal<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Reason>>>
     where
-        Reason.Coder.Input == ArraySlice<Byte>,
-        Reason.Coder.Output == Reason,
-        Reason.Coder.Buffer == [Byte]
+        Reason.Input == ArraySlice<Byte>,
+        Reason.Output: Swift.Error,
+        Reason.Buffer == [Byte]
     {
-        HTTP.refusal(.unprocessableContent, Reason.self)
+        HTTP.refusal(.unprocessableContent, reason)
     }
 }

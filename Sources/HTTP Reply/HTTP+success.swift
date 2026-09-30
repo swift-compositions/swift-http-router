@@ -6,16 +6,15 @@ public import RFC_9110
 
 extension HTTP {
 
-    public static func success<Value: Coder.Codable>(
+    public static func success<Value: Coding>(
         _ status: HTTP.Status,
-        _: Value.Type
-    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value.Coder>>>
+        _ value: Value
+    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value>>>
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Value.Input == ArraySlice<Byte>,
+        Value.Buffer == [Byte]
     {
-        .init(HTTP.Reply.Status(status, HTTP.Content(Value.self)))
+        .init(HTTP.Reply.Status(status, HTTP.Content(value)))
     }
 
     public static func success(
@@ -24,45 +23,42 @@ extension HTTP {
         .init(HTTP.Reply.Status(status, HTTP.Reply.Empty()))
     }
 
-    public static func ok<Value: Coder.Codable>(
-        _: Value.Type
-    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value.Coder>>>
+    public static func ok<Value: Coding>(
+        _ value: Value
+    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value>>>
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Value.Input == ArraySlice<Byte>,
+        Value.Buffer == [Byte]
     {
-        HTTP.success(.ok, Value.self)
+        HTTP.success(.ok, value)
     }
 
     public static func ok() -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Reply.Empty>> {
         HTTP.success(.ok)
     }
 
-    public static func created<Value: Coder.Codable>(
-        _: Value.Type
-    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value.Coder>>>
+    public static func created<Value: Coding>(
+        _ value: Value
+    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value>>>
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Value.Input == ArraySlice<Byte>,
+        Value.Buffer == [Byte]
     {
-        HTTP.success(.created, Value.self)
+        HTTP.success(.created, value)
     }
 
     public static func created() -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Reply.Empty>> {
         HTTP.success(.created)
     }
 
-    public static func accepted<Value: Coder.Codable>(
-        _: Value.Type
-    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value.Coder>>>
+    public static func accepted<Value: Coding>(
+        _ value: Value
+    ) -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Content<HTTP.Router.Response, Value>>>
     where
-        Value.Coder.Input == ArraySlice<Byte>,
-        Value.Coder.Output == Value,
-        Value.Coder.Buffer == [Byte]
+        Value.Input == ArraySlice<Byte>,
+        Value.Buffer == [Byte]
     {
-        HTTP.success(.accepted, Value.self)
+        HTTP.success(.accepted, value)
     }
 
     public static func accepted() -> HTTP.Reply.Success<HTTP.Reply.Status<HTTP.Reply.Empty>> {

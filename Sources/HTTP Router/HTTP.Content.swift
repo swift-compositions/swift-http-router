@@ -5,7 +5,7 @@ public import Serializer
 
 extension HTTP {
 
-    public struct Content<Message: HTTP.Message.`Protocol`, Value: Coder.`Protocol`>
+    public struct Content<Message: HTTP.Message.`Protocol`, Value: Coding>
     where
         Value.Output: ~Copyable,
         Message.Content: RangeReplaceableCollection,
@@ -17,17 +17,6 @@ extension HTTP {
         public init(_ value: Value) {
             self.value = value
         }
-    }
-}
-
-extension HTTP.Content where Value.Output: ~Copyable {
-
-    public init<Item: Coder.Codable>(_: Item.Type)
-    where
-        Value == Item.Coder,
-        Item.Coder.Output == Item
-    {
-        self.init(Item.coder)
     }
 }
 
@@ -59,7 +48,7 @@ where Value.Output: ~Copyable {
     }
 }
 
-extension HTTP.Content: Serializer.`Protocol`
+extension HTTP.Content: Serializing
 where Value.Output: ~Copyable {
 
     public typealias Buffer = Message
@@ -75,5 +64,5 @@ where Value.Output: ~Copyable {
     }
 }
 
-extension HTTP.Content: Coder.`Protocol`
+extension HTTP.Content: Coding
 where Value.Output: ~Copyable {}

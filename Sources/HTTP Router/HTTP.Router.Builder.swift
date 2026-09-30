@@ -1,4 +1,3 @@
-public import Checkpoint_Coder
 public import Coder
 public import HTTP
 
@@ -39,7 +38,7 @@ extension HTTP.Router.Builder where Output: ~Copyable {
     public static func buildPartialBlock<First: Coding, Second: Coding>(
         accumulated first: First,
         next second: Second
-    ) -> Coder.OneOf.Two<First, Second>
+    ) -> Coder::OneOf.Two<First, Second>
     where
         First.Input == HTTP.Router.Request,
         First.Output == Output,

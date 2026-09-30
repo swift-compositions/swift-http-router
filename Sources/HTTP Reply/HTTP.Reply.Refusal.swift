@@ -37,7 +37,7 @@ extension HTTP.Reply.Refusal: Parsing {
     }
 }
 
-extension HTTP.Reply.Refusal: Serializer.`Protocol` {
+extension HTTP.Reply.Refusal: Serializing {
 
     public typealias Buffer = HTTP.Router.Response
 
@@ -55,4 +55,4 @@ extension HTTP.Reply.Refusal: Serializer.`Protocol` {
     }
 }
 
-extension HTTP.Reply.Refusal: Coder.`Protocol` {}
+extension HTTP.Reply.Refusal: Coding {}

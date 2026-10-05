@@ -191,12 +191,24 @@ struct `HTTP.Reply Tests` {
 }
 
 private struct TextWriter: Serializing {
+    var body: Never {
+        borrowing get {
+            return fatalError("\(Self.self) is a leaf: implement its conformance requirements directly")
+        }
+    }
+
     func serialize(_ output: borrowing String, into buffer: inout [Byte]) {
         buffer.append(contentsOf: bytes(output))
     }
 }
 
 private struct LeadingByteParser: Parsing {
+    var body: Never {
+        borrowing get {
+            return fatalError("\(Self.self) is a leaf: implement its conformance requirements directly")
+        }
+    }
+
     func parse(_ input: inout ArraySlice<Byte>) throws(HTTP.Router.Error) -> Byte {
         guard let value = input.popFirst() else { throw .malformed }
         return value

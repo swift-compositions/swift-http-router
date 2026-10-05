@@ -14,7 +14,7 @@ extension HTTP {
     where Domain.Router.Output: ~Copyable {
         var input = request
         let route = try Domain.router.parse(&input)
-        guard input.content == nil else {
+        guard input.content == nil, input.target.remaining?.path.isEmpty ?? true else {
             throw .malformed
         }
         return route

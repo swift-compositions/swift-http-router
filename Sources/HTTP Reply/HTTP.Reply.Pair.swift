@@ -31,6 +31,11 @@ extension HTTP.Reply {
 }
 
 extension HTTP.Reply.Pair: Parsing {
+    public var body: Never {
+        borrowing get {
+            return fatalError("\(Self.self) is a leaf: implement its conformance requirements directly")
+        }
+    }
 
     public typealias Input = HTTP.Router.Response
 

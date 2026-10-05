@@ -46,6 +46,12 @@ enum Ineffable: Equatable {
     case value
 
     struct Coder: Byte.Coding<Ineffable, Swift.String.Coder.Error> {
+        var body: Never {
+            borrowing get {
+                return fatalError("\(Self.self) is a leaf: implement its conformance requirements directly")
+            }
+        }
+
 
         func parse(_ input: inout ArraySlice<Byte>) throws(Swift.String.Coder.Error) -> Ineffable {
             input = input[input.endIndex...]

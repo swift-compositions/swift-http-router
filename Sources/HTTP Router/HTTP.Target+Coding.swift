@@ -1,6 +1,7 @@
 public import Coder
 public import HTTP
 public import Parser
+public import RFC_3986
 public import RFC_9110
 public import Serializer
 
@@ -18,6 +19,7 @@ extension HTTP.Target: @retroactive Parsing, @retroactive Serializing, @retroact
         guard input.target == self else {
             throw .mismatch
         }
+        input.target = .resource(RFC_3986.URI(unchecked: ""))
     }
 
     public func serialize(_ output: Void, into buffer: inout Buffer) throws(Failure) {

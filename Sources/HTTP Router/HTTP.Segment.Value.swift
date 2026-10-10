@@ -24,12 +24,6 @@ extension HTTP.Segment.Value: Parsing, Serializing, Coding {
 
     public typealias Body = Never
 
-    public var body: Never {
-        borrowing get {
-            return fatalError("leaf coder: parse(_:) and serialize(_:into:) are implemented directly")
-        }
-    }
-
     public borrowing func parse(_ input: inout Input) throws(Failure) -> Wrapped {
         guard let value = Wrapped(try input.target.segment()) else {
             throw .mismatch

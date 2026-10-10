@@ -29,12 +29,6 @@ extension HTTP.Query.Field.Optional: Parsing, Serializing, Coding {
 
     public typealias Body = Never
 
-    public var body: Never {
-        borrowing get {
-            return fatalError("leaf coder: parse(_:) and serialize(_:into:) are implemented directly")
-        }
-    }
-
     public borrowing func parse(_ input: inout Input) throws(Failure) -> Wrapped? {
         let name = self.name
         guard

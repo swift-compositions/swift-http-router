@@ -12,12 +12,6 @@ struct UTF8Text: HTTP.Body.Coder.`Protocol` {
     typealias Failure = Never
     typealias Body = Never
 
-    var body: Never {
-        borrowing get {
-            return fatalError("leaf codec — parse(_:) and serialize(_:into:) are implemented directly")
-        }
-    }
-
     static var contentType: HTTP.MediaType { HTTP.MediaType("text", "plain", parameters: ["charset": "utf-8"]) }
 
     func parse(_ input: inout [Byte]) -> String {
@@ -41,12 +35,6 @@ struct Refusing: HTTP.Body.Coder.`Protocol` {
     typealias Output = String
     typealias Failure = Refused
     typealias Body = Never
-
-    var body: Never {
-        borrowing get {
-            return fatalError("leaf codec — parse(_:) and serialize(_:into:) are implemented directly")
-        }
-    }
 
     static var contentType: HTTP.MediaType { HTTP.MediaType("application", "x-refusing") }
 

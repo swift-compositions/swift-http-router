@@ -25,12 +25,6 @@ extension HTTP.Bearer: Parsing, Serializing, Coding {
 
     public typealias Body = Never
 
-    public var body: Never {
-        borrowing get {
-            return fatalError("leaf coder: parse(_:) and serialize(_:into:) are implemented directly")
-        }
-    }
-
     public borrowing func parse(_ input: inout Input) throws(Failure) -> RFC_6750.Bearer {
         guard let value = input.headers[.authorization].first else {
             throw .mismatch

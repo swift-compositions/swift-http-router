@@ -27,12 +27,6 @@
 
         public typealias Body = Never
 
-        public var body: Never {
-            borrowing get {
-                return fatalError("leaf coder: parse(_:) and serialize(_:into:) are implemented directly")
-            }
-        }
-
         public static var contentType: HTTP.MediaType { HTTP.MediaType("application", "json") }
 
         public func parse(_ input: inout [Byte]) throws(Failure) -> Value {

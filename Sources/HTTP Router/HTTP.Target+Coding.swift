@@ -6,11 +6,6 @@ public import RFC_9110
 public import Serializer
 
 extension HTTP.Target: @retroactive Parsing, @retroactive Serializing, @retroactive Coding {
-    public var body: Never {
-        borrowing get {
-            return fatalError("\(Self.self) is a leaf: implement its conformance requirements directly")
-        }
-    }
 
     public typealias Input = HTTP.Router.Request
 

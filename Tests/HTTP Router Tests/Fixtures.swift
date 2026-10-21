@@ -1,17 +1,17 @@
-import Parser
 import Byte
-import Coder
 import Checkpoint
+import Coder
 import Either
 import HTTP
 import HTTP_Router
+import Interface_Macro
 import Operation
 import Optic
+import Parser
 import Prism_Macro
 import RFC_3986
 import RFC_9110
 import Serializer
-import Interface_Macro
 public import Tagged
 
 func bytes(_ text: String) -> [Byte] {
@@ -40,7 +40,8 @@ enum Refusal: Swift.Error, Equatable {
     struct Coder: Coding {
         var body: some Coding<ArraySlice<Byte>, Refusal, [Byte], Swift.String.Coder.Error> {
             return Swift.String.Coder().map(
-                to: { _ in Refusal.refused }, from: { _ in "refused" }
+                to: { _ in Refusal.refused },
+                from: { _ in "refused" }
             )
         }
     }
@@ -58,14 +59,14 @@ extension Fixture: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.echo.prism, Call.cases.echo.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/echo")
-                HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Fixture.Echo.Input($0) }, from: { $0.word }))
+            .post
+            HTTP.Target(unchecked: "/echo")
+            HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Fixture.Echo.Input($0) }, from: { $0.word }))
         }
         Coder::Case(Call.cases.shout.prism, Call.cases.shout.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/shout")
-                HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Fixture.Shout.Input($0) }, from: { $0.word }))
+            .post
+            HTTP.Target(unchecked: "/shout")
+            HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Fixture.Shout.Input($0) }, from: { $0.word }))
         }
     }
 }
@@ -81,9 +82,9 @@ extension Single: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.respond.prism, Call.cases.respond.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/respond")
-                HTTP.Content(Swift.String.Coder.Lossless<Limit>().map(to: { Single.Respond.Input($0) }, from: { $0.limit }))
+            .post
+            HTTP.Target(unchecked: "/respond")
+            HTTP.Content(Swift.String.Coder.Lossless<Limit>().map(to: { Single.Respond.Input($0) }, from: { $0.limit }))
         }
     }
 }
@@ -100,14 +101,14 @@ extension Committed: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.count.prism, Call.cases.count.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/same")
-                HTTP.Content(Swift.String.Coder.Lossless<Limit>().map(to: { Committed.Count.Input($0) }, from: { $0.limit }))
+            .post
+            HTTP.Target(unchecked: "/same")
+            HTTP.Content(Swift.String.Coder.Lossless<Limit>().map(to: { Committed.Count.Input($0) }, from: { $0.limit }))
         }
         Coder::Case(Call.cases.name.prism, Call.cases.name.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/same")
-                HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Committed.Name.Input($0) }, from: { $0.word }))
+            .post
+            HTTP.Target(unchecked: "/same")
+            HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Committed.Name.Input($0) }, from: { $0.word }))
         }
     }
 }
@@ -126,7 +127,6 @@ struct Owned: Owned.Interface {
 extension Owned.Token {
 
     struct Coder: Coding {
-
 
         typealias Input = ArraySlice<Byte>
 
@@ -159,9 +159,9 @@ extension Owned: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.consume.prism, Call.cases.consume.fold, absent: .mismatch) {
-                .post
-                HTTP.Target(unchecked: "/consume")
-                HTTP.Content<HTTP.Router.Request, Owned.Token.Coder>(Owned.Token.Coder())
+            .post
+            HTTP.Target(unchecked: "/consume")
+            HTTP.Content<HTTP.Router.Request, Owned.Token.Coder>(Owned.Token.Coder())
         }
     }
 }
@@ -198,9 +198,9 @@ extension Leaf: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.op.prism, Call.cases.op.fold, absent: .mismatch) {
-                .put
-                HTTP.Target(unchecked: "/leaf")
-                HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Leaf.Op.Input($0) }, from: { $0.word }))
+            .put
+            HTTP.Target(unchecked: "/leaf")
+            HTTP.Content(Swift.String.Coder.Lossless<Word>().map(to: { Leaf.Op.Input($0) }, from: { $0.word }))
         }
     }
 }
@@ -236,8 +236,8 @@ extension Root: HTTP.Routable {
 
     static var router: some HTTP.Router.`Protocol`<Call> {
         Coder::Case(Call.cases.ping.prism, Call.cases.ping.fold, absent: .mismatch) {
-                .get
-                HTTP.Target(unchecked: "/ping").map(to: { _ in Root.Ping.Input() }, from: { _ in () })
+            .get
+            HTTP.Target(unchecked: "/ping").map(to: { _ in Root.Ping.Input() }, from: { _ in () })
         }
         Coder::Case(Call.cases.middle, absent: .mismatch) {
             Middle.router

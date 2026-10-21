@@ -54,10 +54,13 @@ extension HTTP.Query.Field: Parsing, Serializing, Coding {
     public func serialize(_ output: Wrapped, into buffer: inout Buffer) throws(Failure) {
         guard output != self.default else { return }
         let (path, query) = buffer.target.remaining ?? ([] as RFC_3986.URI.Path, nil)
-        let parameters = (query?.parameters.map { ($0.key, $0.value) } ?? []) + [(
-            HTTP.Target.encoded(name, allowing: .queryComponent),
-            HTTP.Target.encoded(output.description, allowing: .queryComponent)
-        )]
+        let parameters =
+            (query?.parameters.map { ($0.key, $0.value) } ?? []) + [
+                (
+                    HTTP.Target.encoded(name, allowing: .queryComponent),
+                    HTTP.Target.encoded(output.description, allowing: .queryComponent)
+                )
+            ]
         buffer.target = try .relative(path.segments, isAbsolute: path.isAbsolute, query: try HTTP.Target.query(parameters))
     }
 }

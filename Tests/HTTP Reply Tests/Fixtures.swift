@@ -35,7 +35,8 @@ enum Refusal: Swift.Error, Equatable {
     struct Coder: Coding {
         var body: some Coding<ArraySlice<Byte>, Refusal, [Byte], Swift.String.Coder.Error> {
             return Swift.String.Coder().map(
-                to: { _ in Refusal.refused }, from: { _ in "refused" }
+                to: { _ in Refusal.refused },
+                from: { _ in "refused" }
             )
         }
     }
@@ -46,7 +47,6 @@ enum Ineffable: Equatable {
     case value
 
     struct Coder: Byte.Coding<Ineffable, Swift.String.Coder.Error> {
-
 
         func parse(_ input: inout ArraySlice<Byte>) throws(Swift.String.Coder.Error) -> Ineffable {
             input = input[input.endIndex...]

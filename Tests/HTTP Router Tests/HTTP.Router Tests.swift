@@ -14,7 +14,6 @@ import Testing
 
 private struct Unprintable: Coding {
 
-
     enum Error: Swift.Error {
         case refused
     }

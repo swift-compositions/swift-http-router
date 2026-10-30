@@ -7,7 +7,7 @@ extension HTTP {
 
     public struct Content<Message: HTTP.Message.`Protocol`, Value: Coding>
     where
-        Value.Output: ~Copyable,
+        Value.Output: ~Copyable & Escapable,
         Message.Content: RangeReplaceableCollection,
         Value.Input == Message.Content.SubSequence,
         Value.Buffer == Message.Content

@@ -5,7 +5,7 @@ public import HTTP
 extension HTTP.Body.Coder {
 
     public protocol `Protocol`<Output, Failure>: Coding
-    where Input == [Byte], Buffer == [Byte], Output: Copyable {
+    where Input == [Byte], Buffer == [Byte], Output: Copyable & Escapable {
 
         static var contentType: HTTP.MediaType { get }
 

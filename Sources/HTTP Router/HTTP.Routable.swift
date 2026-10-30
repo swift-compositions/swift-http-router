@@ -10,7 +10,7 @@ extension HTTP {
         associatedtype Router: Coding
         where
             Router.Input == HTTP.Router.Request,
-            Router.Output: ~Copyable,
+            Router.Output: ~Copyable & Escapable,
             Router.Buffer == HTTP.Router.Request,
             Router.Failure == HTTP.Router.Error
 

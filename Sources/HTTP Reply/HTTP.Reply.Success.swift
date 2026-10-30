@@ -11,6 +11,7 @@ extension HTTP.Reply {
     where
         Body.Input == HTTP.Router.Response,
         Body.Buffer == HTTP.Router.Response,
+        Body.Output: Copyable & Escapable,
         Body.Failure == HTTP.Router.Error
     {
         public let body: Body

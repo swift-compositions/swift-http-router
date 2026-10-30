@@ -38,7 +38,11 @@ enum Refusal: Swift.Error, Equatable {
     case refused
 
     struct Coder: Coding {
-        var body: some Coding<ArraySlice<Byte>, Refusal, [Byte], Swift.String.Coder.Error> {
+        var body:
+            some Coding
+                & Parsing<ArraySlice<Byte>, Refusal, Swift.String.Coder.Error>
+                & Serializing<Refusal, [Byte], Swift.String.Coder.Error>
+        {
             return Swift.String.Coder().map(
                 to: { _ in Refusal.refused },
                 from: { _ in "refused" }

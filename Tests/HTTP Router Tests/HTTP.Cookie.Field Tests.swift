@@ -54,6 +54,15 @@ struct `HTTP.Cookie.Field Tests` {
     }
 
     @Test
+    func `a value outside the cookie grammar is not written`() throws {
+        var request = try Self.request(cookie: nil)
+        #expect(throws: HTTP.Router.Error.unprintable) {
+            try HTTP.Cookie.Field("refresh_token", UTF8Text()).serialize("a; injected=1", into: &request)
+        }
+        #expect(request.headers.first { $0.name.rawValue.lowercased() == "cookie" } == nil)
+    }
+
+    @Test
     func `a missing cookie is a mismatch`() {
         #expect(throws: HTTP.Router.Error.mismatch) {
             try HTTP.route(Session.self, try Self.request(cookie: "theme=dark"))

@@ -56,7 +56,12 @@ extension HTTP.Cookie.Field: Parsing, Serializing, Coding {
         } catch {
             throw .unprintable
         }
-        let pair = RFC_6265.Cookie.Pair(name: name, value: Swift.String(decoding: bytes.map(\.bitPattern), as: UTF8.self))
+        let pair: RFC_6265.Cookie.Pair
+        do throws(RFC_6265.Cookie.Pair.Error) {
+            pair = try RFC_6265.Cookie.Pair(name: name, value: Swift.String(decoding: bytes.map(\.bitPattern), as: UTF8.self))
+        } catch {
+            throw .unprintable
+        }
         let existing = buffer.headers.first { $0.name.rawValue.lowercased() == "cookie" }
         let field: RFC_9110.Field
         do throws(RFC_9110.Field.Error) {

@@ -130,6 +130,20 @@ struct `HTTP.Router Tests` {
     }
 
     @Test
+    func `a router value routes and prints like its domain`() throws {
+        let echo = try HTTP.request(Fixture.router, for: .echo(Word("Ada")))
+        #expect(echo.target == HTTP.Target(unchecked: "/echo"))
+        guard case .echo(let application) = try HTTP.route(Fixture.router, echo) else {
+            Issue.record("expected the echo branch")
+            return
+        }
+        #expect(application.input.word == Word("Ada"))
+        var trailing = echo
+        trailing.target = HTTP.Target(unchecked: "/echo/more")
+        #expect(throws: HTTP.Router.Error.self) { try HTTP.route(Fixture.router, trailing) }
+    }
+
+    @Test
     func `a noncopyable root routes its calls from a borrow`() throws {
         let consumeRequest = try HTTP.request(
             Linear.self,

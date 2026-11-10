@@ -12,8 +12,20 @@ extension HTTP {
         _ request: HTTP.Router.Request
     ) throws(HTTP.Router.Error) -> Domain.Router.Output
     where Domain.Router.Output: ~Copyable {
+        try route(Domain.router, request)
+    }
+
+    public static func route<Router: Coding>(
+        _ router: Router,
+        _ request: HTTP.Router.Request
+    ) throws(HTTP.Router.Error) -> Router.Output
+    where
+        Router.Input == HTTP.Router.Request,
+        Router.Output: ~Copyable & Escapable,
+        Router.Failure == HTTP.Router.Error
+    {
         var input = request
-        let route = try Domain.router.parse(&input)
+        let route = try router.parse(&input)
         guard input.content == nil, input.target.remaining?.path.isEmpty ?? true else {
             throw .malformed
         }

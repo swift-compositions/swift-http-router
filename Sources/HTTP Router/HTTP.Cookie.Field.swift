@@ -36,7 +36,7 @@ extension HTTP.Cookie.Field: Parsing, Serializing, Coding {
     public borrowing func parse(_ input: inout Input) throws(Failure) -> Coder.Output {
         let name = self.name
         let pairs = input.headers
-            .filter { $0.name.rawValue.lowercased() == "cookie" }
+            .filter { $0.name == .cookie }
             .flatMap { RFC_6265.Cookie.parse(skippingInvalidPairs: $0.value.rawValue).pairs }
         guard let pair = pairs.first(where: { $0.name == name }) else {
             throw .mismatch
@@ -62,12 +62,12 @@ extension HTTP.Cookie.Field: Parsing, Serializing, Coding {
         } catch {
             throw .unprintable
         }
-        let existing = buffer.headers.first { $0.name.rawValue.lowercased() == "cookie" }
+        let existing = buffer.headers.first { $0.name == .cookie }
         let field: RFC_9110.Field
         do throws(RFC_9110.Field.Error) {
-            field = try RFC_9110.Field(
-                name: "Cookie",
-                value: existing.map { "\($0.value.rawValue); \(pair.serialized)" } ?? pair.serialized
+            field = RFC_9110.Field(
+                name: .cookie,
+                value: try RFC_9110.Field.Value(existing.map { "\($0.value.rawValue); \(pair.serialized)" } ?? pair.serialized)
             )
         } catch {
             throw .unprintable

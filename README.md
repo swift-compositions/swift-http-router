@@ -59,4 +59,4 @@ maps failures or trailing input to `.malformed`.
 
 ## Dependencies
 
-`HTTP` from [swift-standards/swift-http](https://github.com/swift-standards/swift-http), `RFC 9110` from [swift-ietf/swift-rfc-9110](https://github.com/swift-ietf/swift-rfc-9110), and the coder atoms and molecules named in `Package.swift`.
+The `HTTP` product is the package's own namespace: the RFC 9110 names (`HTTP.Method`, `HTTP.Status`, `HTTP.Target` and the rest) as typealiases. Beyond it, `RFC 9110` from [swift-ietf/swift-rfc-9110](https://github.com/swift-ietf/swift-rfc-9110), and the coder atoms and molecules named in `Package.swift`.

@@ -13,6 +13,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "HTTP",
+            targets: ["HTTP"]
+        ),
+        .library(
             name: "HTTP Router",
             targets: ["HTTP Router"]
         ),
@@ -34,7 +38,6 @@ let package = Package(
         .package(url: "https://github.com/swift-atoms/swift-parser.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-serializer.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-tagged.git", branch: "main"),
-        .package(url: "https://github.com/swift-standards/swift-http.git", branch: "main"),
         .package(url: "https://github.com/coenttb/swift-interface.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-3986.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-6265.git", branch: "main"),
@@ -43,6 +46,12 @@ let package = Package(
         .package(url: "https://github.com/swift-compositions/swift-json.git", branch: "main"),
     ],
     targets: [
+        .target(
+            name: "HTTP",
+            dependencies: [
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+            ]
+        ),
         .target(
             name: "HTTP Router",
             dependencies: [
@@ -55,7 +64,7 @@ let package = Package(
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Coder", package: "swift-coder"),
-                .product(name: "HTTP", package: "swift-http"),
+                .target(name: "HTTP"),
                 .product(name: "Operation", package: "swift-operation"),
                 .product(name: "Parser", package: "swift-parser"),
                 .product(name: "RFC 3986", package: "swift-rfc-3986"),
@@ -68,12 +77,12 @@ let package = Package(
         .target(
             name: "HTTP Reply",
             dependencies: [
-                "HTTP Router",
+                .target(name: "HTTP Router"),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
-                .product(name: "HTTP", package: "swift-http"),
+                .target(name: "HTTP"),
                 .product(name: "Parser", package: "swift-parser"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Serializer", package: "swift-serializer"),
@@ -83,12 +92,12 @@ let package = Package(
             name: "HTTP Router Tests",
             dependencies: [
                 .product(name: "Parser", package: "swift-parser"),
-                "HTTP Router",
+                .target(name: "HTTP Router"),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
-                .product(name: "HTTP", package: "swift-http"),
+                .target(name: "HTTP"),
                 .product(name: "Operation", package: "swift-operation"),
                 .product(name: "Optic", package: "swift-optic"),
                 .product(name: "Prism Macro", package: "swift-optic"),
@@ -105,12 +114,12 @@ let package = Package(
         .testTarget(
             name: "HTTP Reply Tests",
             dependencies: [
-                "HTTP Reply",
-                "HTTP Router",
+                .target(name: "HTTP Reply"),
+                .target(name: "HTTP Router"),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Coder", package: "swift-coder"),
                 .product(name: "Either", package: "swift-either"),
-                .product(name: "HTTP", package: "swift-http"),
+                .target(name: "HTTP"),
                 .product(name: "Parser", package: "swift-parser"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Serializer", package: "swift-serializer"),

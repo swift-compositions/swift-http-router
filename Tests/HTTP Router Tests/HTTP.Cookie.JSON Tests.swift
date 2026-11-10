@@ -52,7 +52,7 @@ enum Tokens: Equatable, Sendable {
         static let jwt = "eyJhbGciOiJub25lIn0.eyJzdWIiOiJwYXJpdHkifQ.AQID"
 
         static func request(_ path: String, body: String? = nil, cookie: String? = nil) throws -> HTTP.Router.Request {
-            var request = HTTP.Router.Request(method: .post, target: .resource(RFC_3986.URI(unchecked: path)))
+            var request = HTTP.Router.Request(method: .post, target: HTTP.Target(unchecked: path))
             if let cookie {
                 request.headers.append(try RFC_9110.Field(name: "Cookie", value: cookie))
             }

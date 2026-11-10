@@ -34,7 +34,7 @@ extension Session: HTTP.Routable {
 struct `HTTP.Cookie.Field Tests` {
 
     static func request(cookie: String?) throws -> HTTP.Router.Request {
-        var request = HTTP.Router.Request(method: .post, target: .resource(RFC_3986.URI(unchecked: "/refresh")))
+        var request = HTTP.Router.Request(method: .post, target: HTTP.Target(unchecked: "/refresh"))
         if let cookie {
             request.headers.append(try RFC_9110.Field(name: "Cookie", value: cookie))
         }

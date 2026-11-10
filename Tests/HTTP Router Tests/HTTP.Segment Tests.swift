@@ -37,7 +37,7 @@ extension Items: HTTP.Routable {
 struct `HTTP.Segment Tests` {
 
     static func request(_ method: HTTP.Method, _ target: String) -> HTTP.Router.Request {
-        HTTP.Router.Request(method: method, target: .resource(RFC_3986.URI(unchecked: target)))
+        HTTP.Router.Request(method: method, target: HTTP.Target(unchecked: target))
     }
 
     @Test

@@ -68,7 +68,7 @@ extension Portal: HTTP.Routable {
 struct `HTTP.Segment.Nesting Tests` {
 
     static func request(_ method: HTTP.Method, _ target: String) -> HTTP.Router.Request {
-        HTTP.Router.Request(method: method, target: .resource(RFC_3986.URI(unchecked: target)))
+        HTTP.Router.Request(method: method, target: HTTP.Target(unchecked: target))
     }
 
     static func roundTrip(_ site: Portal, _ method: HTTP.Method, _ target: String) throws {
@@ -130,7 +130,7 @@ struct `HTTP.Segment.Nesting Tests` {
 struct `HTTP.Query.Field.Optional Tests` {
 
     static func request(_ target: String) -> HTTP.Router.Request {
-        HTTP.Router.Request(method: .get, target: .resource(RFC_3986.URI(unchecked: target)))
+        HTTP.Router.Request(method: .get, target: HTTP.Target(unchecked: target))
     }
 
     @Test

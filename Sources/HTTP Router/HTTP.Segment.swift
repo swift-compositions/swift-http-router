@@ -44,8 +44,17 @@ extension HTTP.Segment: Parsing, Serializing, Coding {
 extension HTTP.Target {
 
     var remaining: (path: RFC_3986.URI.Path, query: RFC_3986.URI.Query?)? {
-        guard case .resource(let uri) = self, let path = uri.path else { return nil }
-        return (path, uri.query)
+        switch self {
+        case .origin(let path, let query):
+            return (path, query)
+
+        case .resource(let uri):
+            guard let path = uri.path else { return nil }
+            return (path, uri.query)
+
+        case .authority, .asterisk:
+            return nil
+        }
     }
 
     func segment() throws(HTTP.Router.Error) -> Swift.String {
@@ -77,7 +86,7 @@ extension HTTP.Target {
         } catch {
             throw .unprintable
         }
-        return .resource(RFC_3986.URI(unchecked: query.map { "\(path)?\($0)" } ?? path.description))
+        return .origin(path: path, query: query)
     }
 
     static func decoded(_ raw: Swift.String) -> Swift.String {

@@ -46,7 +46,7 @@ extension Keys: HTTP.Routable {
 struct `HTTP.Bearer Tests` {
 
     static func request(_ target: String, authorization: String?) -> HTTP.Router.Request {
-        var request = HTTP.Router.Request(method: .post, target: .resource(RFC_3986.URI(unchecked: target)))
+        var request = HTTP.Router.Request(method: .post, target: HTTP.Target(unchecked: target))
         if let authorization {
             request.headers.append(RFC_9110.Field(name: .authorization, value: .init(unchecked: authorization)))
         }

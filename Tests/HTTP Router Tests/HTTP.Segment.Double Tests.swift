@@ -31,7 +31,7 @@ struct `HTTP.Segment.Double Tests` {
     @Test
     func `two prefix segments before a child router round-trip`() throws {
         let request = try HTTP.request(Deep.self, for: .member(.show(Limit(3))))
-        #expect(request.target == HTTP.Router.Request(method: .get, target: .resource(RFC_3986.URI(unchecked: "/api/member/3"))).target)
+        #expect(request.target == HTTP.Router.Request(method: .get, target: HTTP.Target(unchecked: "/api/member/3")).target)
         #expect(try HTTP.route(Deep.self, request) == .member(.show(Limit(3))))
     }
 }

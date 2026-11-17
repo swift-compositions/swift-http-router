@@ -1,8 +1,9 @@
 #if Foundation
     public import Byte
-    public import Coder
-    public import Foundation
+    import Coder
+    import Foundation
     public import HTTP
+    public import HTTP_Router
     public import JSON
     public import JSON_Foundation_Integration
     public import RFC_9110

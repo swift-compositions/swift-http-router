@@ -7,6 +7,10 @@ import RFC_3986
 import RFC_9110
 import Testing
 
+#if Foundation
+    import HTTP_Router_Foundation_Integration
+#endif
+
 @Prisms
 @Folds
 @Cases

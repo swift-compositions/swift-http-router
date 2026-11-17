@@ -14,7 +14,7 @@ import Testing
 
 private struct Unprintable: Coding {
 
-    enum Error: Swift.Error {
+    enum Refusal: Swift.Error {
         case refused
     }
 
@@ -24,13 +24,13 @@ private struct Unprintable: Coding {
 
     typealias Buffer = [Byte]
 
-    typealias Failure = Error
+    typealias Failure = Refusal
 
-    func parse(_ input: inout ArraySlice<Byte>) throws(Error) -> String {
+    func parse(_ input: inout ArraySlice<Byte>) throws(Refusal) -> String {
         throw .refused
     }
 
-    func serialize(_ output: String, into buffer: inout [Byte]) throws(Error) {
+    func serialize(_ output: String, into buffer: inout [Byte]) throws(Refusal) {
         throw .refused
     }
 }

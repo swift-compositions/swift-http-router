@@ -24,6 +24,10 @@ let package = Package(
             name: "HTTP Reply",
             targets: ["HTTP Reply"]
         ),
+        .library(
+            name: "HTTP Router Foundation Integration",
+            targets: ["HTTP Router Foundation Integration"]
+        ),
     ],
     traits: [
         .trait(name: "Foundation", description: "Codable JSON bodies through swift-json's Foundation integration")
@@ -49,18 +53,12 @@ let package = Package(
         .target(
             name: "HTTP",
             dependencies: [
-                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110")
             ]
         ),
         .target(
             name: "HTTP Router",
             dependencies: [
-                .product(name: "JSON", package: "swift-json", condition: .when(traits: ["Foundation"])),
-                .product(
-                    name: "JSON Foundation Integration",
-                    package: "swift-json",
-                    condition: .when(traits: ["Foundation"])
-                ),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Coder", package: "swift-coder"),
@@ -72,6 +70,22 @@ let package = Package(
                 .product(name: "RFC 6750", package: "swift-rfc-6750"),
                 .product(name: "RFC 9110", package: "swift-rfc-9110"),
                 .product(name: "Serializer", package: "swift-serializer"),
+            ]
+        ),
+        .target(
+            name: "HTTP Router Foundation Integration",
+            dependencies: [
+                .target(name: "HTTP Router"),
+                .target(name: "HTTP"),
+                .product(name: "Byte", package: "swift-byte"),
+                .product(name: "Coder", package: "swift-coder"),
+                .product(name: "RFC 9110", package: "swift-rfc-9110"),
+                .product(name: "JSON", package: "swift-json", condition: .when(traits: ["Foundation"])),
+                .product(
+                    name: "JSON Foundation Integration",
+                    package: "swift-json",
+                    condition: .when(traits: ["Foundation"])
+                ),
             ]
         ),
         .target(
@@ -93,6 +107,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Parser", package: "swift-parser"),
                 .target(name: "HTTP Router"),
+                .target(name: "HTTP Router Foundation Integration", condition: .when(traits: ["Foundation"])),
                 .product(name: "Byte", package: "swift-byte"),
                 .product(name: "Checkpoint", package: "swift-checkpoint"),
                 .product(name: "Coder", package: "swift-coder"),
@@ -131,17 +146,15 @@ let package = Package(
 )
 
 for target in package.targets where ![.system, .binary, .plugin, .macro].contains(target.type) {
-    let ecosystem: [SwiftSetting] = [
-        .strictMemorySafety(),
-        .enableUpcomingFeature("ExistentialAny"),
-        .enableUpcomingFeature("InternalImportsByDefault"),
-        .enableUpcomingFeature("MemberImportVisibility"),
-        .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
-        .enableExperimentalFeature("Lifetimes"),
-        .enableUpcomingFeature("InferIsolatedConformances"),
-    ]
-
-    let package: [SwiftSetting] = []
-
-    target.swiftSettings = (target.swiftSettings ?? []) + ecosystem + package
+    target.swiftSettings =
+        (target.swiftSettings ?? []) + [
+            .strictMemorySafety(),
+            .enableUpcomingFeature("ExistentialAny"),
+            .enableUpcomingFeature("InternalImportsByDefault"),
+            .enableUpcomingFeature("MemberImportVisibility"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .enableExperimentalFeature("Lifetimes"),
+            .treatAllWarnings(as: .error),
+        ]
 }

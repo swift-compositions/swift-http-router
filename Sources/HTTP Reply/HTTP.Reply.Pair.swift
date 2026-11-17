@@ -3,8 +3,8 @@ public import Coder
 public import Either
 public import HTTP
 public import HTTP_Router
-public import Parser
-public import Serializer
+import Parser
+import Serializer
 
 extension HTTP.Reply {
 
@@ -66,6 +66,7 @@ extension HTTP.Reply.Pair: Serializing {
         switch reply {
         case .left(let reason):
             try refusal.serialize(.left(reason), into: &buffer)
+
         case .right(let value):
             try success.serialize(.right(value), into: &buffer)
         }

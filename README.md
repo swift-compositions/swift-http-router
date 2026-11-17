@@ -1,62 +1,15 @@
 # swift-http-router
 
-Routes and replies over the `HTTP` namespace, one coder per domain call.
+Pre-Institute: going to swift-compositions once swift-interface, whose `@Interface` its tests use, has moved there. Use this package to route HTTP requests to a domain's calls and to answer them. A router is one coder: the same value parses an `HTTP.Router.Request` into a call and prints the call back into a request, so the two directions cannot drift apart. `HTTP Router` holds the routes (`HTTP.Routable`, `HTTP.route { … }` built from a method, `HTTP.Target`, `HTTP.Segment`, `HTTP.Query.Field`, `HTTP.Cookie.Field`, `HTTP.Bearer` and a body coder); `HTTP Reply` holds the responses (`HTTP.reply { … }` built from status arms such as `HTTP.ok` and `HTTP.badRequest`); `HTTP` is the namespace alone, its RFC 9110 names typealiases into `RFC_9110`, so extending `HTTP.Target` extends the RFC 9110 type. The tests are the examples.
 
-## HTTP Router
+## Laws
 
-`import HTTP_Router` for `HTTP.Routable`, `HTTP.Router.Protocol`, `HTTP.Router.Builder`, `HTTP.Router.Request`, `HTTP.Router.Response`, `HTTP.Router.Error`, `HTTP.Content`, the `HTTP.Method` and `HTTP.Target` field coders, and `HTTP.route`, `HTTP.request`, `HTTP.target`.
-
-```swift
-extension Greeting: HTTP.Routable {
-
-    static var router: some HTTP.Router.`Protocol`<Call> {
-        Call.Router(
-            absent: .mismatch,
-            greet: HTTP.route {
-                .post
-                HTTP.Target(unchecked: "/greet")
-                HTTP.Content(Greeting.Name.Coder())
-            }
-        )
-    }
-}
-
-let request = try HTTP.request(Greeting.self, for: .greet(Greeting.Name("Ada")))
-let call = try HTTP.route(Greeting.self, request)
-```
-
-## HTTP Reply
-
-`import HTTP_Reply` for `HTTP.Reply.Builder`, `HTTP.Reply.Status`, `HTTP.Reply.Success`, `HTTP.Reply.Refusal`, `HTTP.Reply.Empty`, `HTTP.Reply.Pair`, `HTTP.reply`, `HTTP.success`, `HTTP.refusal`, the status shorthands `HTTP.ok`, `HTTP.created`, `HTTP.badRequest`, `HTTP.notFound` and their siblings, and `HTTP.Router.Response.ok`, `.badRequest`, `.decoded`.
-
-```swift
-let reply = HTTP.reply {
-    HTTP.ok(Greeting.Message.Coder())
-    HTTP.badRequest(Greeting.Error.Coder())
-}
-
-var response = HTTP.Router.Response.blank
-try reply.serialize(.right(Greeting.Message("Hello, Ada")), into: &response)
-let outcome = try reply.parse(&response)
-```
-
-A reply infers bottom-up: `HTTP.Reply.Success` codes `Either<Never, Value>`, `HTTP.Reply.Refusal` codes `Either<Reason, Never>`, and the builder pairs them into `Either<Reason, Value>`.
-
-## Explicit representations
-
-`HTTP.Content` and the bidirectional success/refusal factories take a concrete
-`Coding` value, for example `HTTP.Content(String.Coder())` or
-`HTTP.ok(String.Coder.Lossless<Count>())`. The former type-based overloads and
-model-level `Coder.Codable` adoption have been removed; define or pass the desired
-representation at each boundary.
-
-Response conveniences accept each direction independently:
-`HTTP.Router.Response.ok(value, using: serializer)`,
-`HTTP.Router.Response(status, value, using: serializer)`, and
-`response.decoded(using: parser)`. Serialization creates a fresh body and maps
-failures to `.unprintable`; decoding requires a present, fully consumed body and
-maps failures or trailing input to `.malformed`.
-
-## Dependencies
-
-The `HTTP` product is the package's own namespace: the RFC 9110 names (`HTTP.Method`, `HTTP.Status`, `HTTP.Target` and the rest) as typealiases. Beyond it, `RFC 9110` from [swift-ietf/swift-rfc-9110](https://github.com/swift-ietf/swift-rfc-9110), and the coder atoms and molecules named in `Package.swift`.
+- `HTTP.route(router, HTTP.request(router, for: call)) == call` for every call the router can print. `HTTP.route` and `HTTP.request` take a `Routable` type or a router value, for a router built from runtime input.
+- A route matches only when it consumes the whole request: a body or path left over after parsing is `.malformed`.
+- `HTTP.Router.Error.mismatch` means this route does not apply and the next one is tried; `.malformed` means the route applies but the request is wrong, and stops the search; `.unprintable` means a call could not be printed.
+- An origin-form target is read and printed as `RFC_9110.Target.origin(path:query:)`, so `//apps` keeps its empty first segment.
+- A body takes an explicit coder value (`HTTP.Content(String.Coder())`). There is no type-based overload and no implicit `Codable` adoption: the representation is chosen at each boundary.
+- A reply's types infer bottom-up: `HTTP.Reply.Success` codes `Either<Never, Value>`, `HTTP.Reply.Refusal` codes `Either<Reason, Never>`, and the builder pairs them into `Either<Reason, Value>`. A refusal may come first.
+- A status no reply arm owns is `.mismatch`; a body its arm cannot read is `.malformed`. `HTTP.Reply.Empty` carries no content and refuses any.
+- `HTTP.Router.Response.ok(value, using:)` and `HTTP.Router.Response(status, value, using:)` write a fresh body and map a failure to `.unprintable`; `response.decoded(using:)` needs a present, fully consumed body and maps a failure or trailing bytes to `.malformed`.
+- JSON bodies need Foundation, so `HTTP.Body.JSON<Value>` (any `Codable` value, `application/json`) lives in `HTTP Router Foundation Integration` behind the `Foundation` trait. No other target imports Foundation.

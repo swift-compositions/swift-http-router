@@ -1,6 +1,6 @@
 public import Coder
 public import HTTP
-public import Parser
+import Parser
 import Serializer
 
 extension HTTP {

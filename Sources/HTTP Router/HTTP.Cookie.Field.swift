@@ -1,10 +1,10 @@
-public import Byte
+import Byte
 public import Coder
 public import HTTP
-public import Parser
-public import RFC_6265
+import Parser
+import RFC_6265
 public import RFC_9110
-public import Serializer
+import Serializer
 
 extension HTTP.Cookie {
 

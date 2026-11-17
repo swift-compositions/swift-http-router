@@ -1,9 +1,9 @@
 public import Coder
 public import HTTP
-public import Parser
+import Parser
 public import RFC_6750
 public import RFC_9110
-public import Serializer
+import Serializer
 
 extension HTTP {
 

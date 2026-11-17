@@ -1,9 +1,9 @@
 public import Coder
 public import HTTP
-public import Parser
-public import RFC_3986
+import Parser
+import RFC_3986
 public import RFC_9110
-public import Serializer
+import Serializer
 
 extension HTTP.Query {
 

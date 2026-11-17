@@ -8,6 +8,10 @@ import RFC_9110
 import Tagged
 import Testing
 
+#if Foundation
+    import HTTP_Router_Foundation_Integration
+#endif
+
 struct Note: Codable, Equatable, Sendable {
     var title: String
 }

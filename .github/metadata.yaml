@@ -1,0 +1,10 @@
+# .github/metadata.yaml
+description: "Bidirectional HTTP routing for Swift: one coder parses a request into a call and prints the call back, with typed replies over RFC 9110."
+topics:
+  - compositions
+  - http
+  - routing
+  - rfc-9110
+homepage: "https://swift-institute.org"
+readme:
+  family: E

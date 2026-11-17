@@ -1,8 +1,8 @@
 public import Coder
 public import HTTP
-public import Parser
+import Parser
 public import RFC_9110
-public import Serializer
+import Serializer
 
 extension HTTP.Method: @retroactive Parsing, @retroactive Serializing, @retroactive Coding {
 

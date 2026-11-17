@@ -1,7 +1,7 @@
 public import Coder
 public import HTTP
-public import Parser
-public import Serializer
+import Parser
+import Serializer
 
 extension HTTP {
 

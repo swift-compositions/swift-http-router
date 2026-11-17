@@ -42,7 +42,7 @@ let package = Package(
         .package(url: "https://github.com/swift-atoms/swift-parser.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-serializer.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-tagged.git", branch: "main"),
-        .package(url: "https://github.com/coenttb/swift-interface.git", branch: "main"),
+        .package(url: "https://github.com/swift-compositions/swift-interface.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-3986.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-6265.git", branch: "main"),
         .package(url: "https://github.com/swift-ietf/swift-rfc-6750.git", branch: "main"),

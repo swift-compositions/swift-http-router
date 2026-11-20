@@ -38,7 +38,7 @@ let package = Package(
         .package(url: "https://github.com/swift-atoms/swift-coder.git", branch: "main", traits: ["Checkpoint", "Optic", "Skip", "Byte", "Operation", "Map"]),
         .package(url: "https://github.com/swift-atoms/swift-either.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-operation.git", branch: "main"),
-        .package(url: "https://github.com/swift-atoms/swift-optic.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-optic.git", branch: "main", traits: ["Coproduct"]),
         .package(url: "https://github.com/swift-atoms/swift-parser.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-serializer.git", branch: "main"),
         .package(url: "https://github.com/swift-atoms/swift-tagged.git", branch: "main"),
